@@ -169,6 +169,11 @@ class Globals {
     NW: [-2, -1],
     NONE: [0, 0]
   };
+  DIR_INDEX = {
+    FORWARD: 0,
+    LEFT: 1,
+    RIGHT: 2
+  };
   COLOR = {
     AsphaltRed: "#a2797e", //// ac6e70 a2797e
     Asphalt: "#948a97",
@@ -214,6 +219,10 @@ class Utilities {
       return Math.floor(x / 2);
     else
       return x;
+  }
+
+  scalePixelRatio(x) {
+    return x * window.devicePixelRatio;
   }
 };
 const u = new Utilities();
@@ -1259,8 +1268,6 @@ class RaceCar {
 
   move(dirIndex) {
     if (this.moveCount) {
-      this.moveCount--;
-
       let tile = this.racetrack.getTile(this.x, this.y);
       if (tile && tile.dirs.length > dirIndex) {
         let dir = tile.dirs[dirIndex];
@@ -1268,6 +1275,7 @@ class RaceCar {
         let y = this.y + dir[1];
         tile = this.racetrack.getTile(x, y);
         if (tile && tile.isPassable()) {
+          this.moveCount--;
           this.x = x;
           this.y = y;
         }
@@ -1276,6 +1284,20 @@ class RaceCar {
         this.startTurn();
       }
     }
+  }
+
+  canMove(dirIndex) {
+    let tile = this.racetrack.getTile(this.x, this.y);
+    if (tile && tile.dirs.length > dirIndex) {
+      let dir = tile.dirs[dirIndex];
+      let x = this.x + dir[0];
+      let y = this.y + dir[1];
+      tile = this.racetrack.getTile(x, y);
+      if (tile && tile.isPassable()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   canShiftUp() {
@@ -1337,15 +1359,15 @@ class RaceCar {
   }
 
   onPlayerUp() {
-    this.move(0);
+    this.move(g.DIR_INDEX.FORWARD);
   }
 
   onPlayerLeft() {
-    this.move(1);
+    this.move(g.DIR_INDEX.LEFT);
   }
 
   onPlayerRight() {
-    this.move(2);
+    this.move(g.DIR_INDEX.RIGHT);
   }
 };
 
@@ -1362,6 +1384,8 @@ class View {
     this.title = "";
     this.bg = "Black";
     this.children = [];
+    this.isEnabled = true;
+    this.disabledColor = "DimGray";
 
     if (!display) {
       this.display = new ROT.Display({
@@ -1437,6 +1461,10 @@ class View {
     if (this.border < 1)
       return;
 
+    let color = "white";
+    if (!this.isEnabled)
+      color = this.disabledColor;
+
     if (!this.title)
       this.x = this.x;
     let w = this.x + this.width;
@@ -1446,16 +1474,16 @@ class View {
     let marginY = Math.floor(margin/2);
     for (let x = this.x + margin; x < w; x += this.width - (margin * 2 + 1)) {
       for (let y = this.y + marginY + 1; y < h - (marginY + 1); y++) {
-          this.display.draw(x, y, "|", "white", this.bg);
+          this.display.draw(x, y, "|", color, this.bg);
       }
     }
     let yStart = this.y + marginY;
     for (let x = this.x + margin + 1; x < w - margin - 1; x++) {
       for (let y = yStart; y < h; y += this.height - (marginY * 2 + 1)) {
           if (y == yStart && x >= titleX && x < titleX + this.title.length)
-            this.display.draw(x, y, this.title[x - titleX], "white", this.bg);
+            this.display.draw(x, y, this.title[x - titleX], color, this.bg);
           else
-            this.display.draw(x, y, "-", "white", this.bg);
+            this.display.draw(x, y, "-", color, this.bg);
       }
     }
   }   
@@ -1502,15 +1530,19 @@ class LevelView extends View {
 class ButtonView extends View {
   constructor(x, y, w, h, parent, display=null) {
     super(x, y, w, h, parent, display);
-    this.isEnabled = true;
+
     this.isDown = false;
     this.isHover = false;
     this.text = "";
     this.textColor = "White";
+    this.textShiftX = 0;
+    this.textShiftY = 0;
+    this.textWrap = undefined;
     this.hoverColor = "#666";
     this.upColor = "Black";
     this.downColor = "#444";
     this.bg = this.upColor;
+
     
   }
 
@@ -1527,8 +1559,10 @@ class ButtonView extends View {
    * @param {MouseEvent} event
    */
   onEvent(event) {
-    if (!this.isEnabled)
+    if (!this.isEnabled) {
+      this.bg = this.upColor;
       return;
+    }
 
     let isInside = this.isEventInside(event);
     if (event.type == "pointerdown" && isInside && !this.isDown) {
@@ -1603,10 +1637,14 @@ class ButtonView extends View {
         color = "Black";
         //bg = this.hoverColor;
       }
+      if (!this.isEnabled)
+        color = this.disabledColor;
+
       this.display.drawText(
-        this.x + Math.floor(this.width / 2) - Math.floor(this.text.length / 2), 
-        this.y + Math.floor(this.height/2), 
-        "%c{" + color + "}" + "%b{" + this.bg + "}" + this.text);
+        this.x + this.textShiftX + Math.floor(this.width / 2) - Math.floor(this.text.length / 2), 
+        this.y + this.textShiftY + Math.floor(this.height/2), 
+        "%c{" + color + "}" + "%b{" + this.bg + "}" + this.text,
+        this.textWrap);
     }
     if (this.isDown)
       this.bg = this.upColor;
@@ -1661,8 +1699,13 @@ class GearView extends HUDView {
   }
 
   draw() {
+    if (this.player.shiftCount)
+      this.isEnabled = true;
+    else
+      this.isEnabled = false;  
+
     super.draw();
-    
+
     /*
     for (let x =0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
@@ -1674,7 +1717,7 @@ class GearView extends HUDView {
     let x = this.margin+this.padding;
     let y = Math.ceil((this.margin+this.padding) / 2);
     let inactive = "White";
-    let unavailable = "DimGray"
+    let unavailable = "DimGray";
     let active = "LawnGreen";
 
 
@@ -1777,23 +1820,66 @@ class ControlsView extends HUDView {
 
     this.goButton = new ButtonView(0, 0, this.width, this.height / 2, this, this.display);
     this.goButton.border = 1;
-    this.goButton.text = "GO!";
-    this.goButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUIConfirm(); }
+    this.goButton.text = "\xa0▲ GO!";
+    this.goButton.textWrap = 4;
+    this.goButton.textShiftX = 2;
+    this.goButton.textShiftY = -1;
+    this.goButton.onPress = () => { 
+      ButtonView.prototype.onPress(); 
+      if (this.player.moveCount)
+        this.player.onPlayerUp();
+      else
+        this.player.onUIConfirm(); 
+      this.draw(); 
+    }
     
     this.leftButton = new ButtonView(0, this.height / 2, this.width / 2, this.height / 2, this, this.display);
     this.leftButton.border = 1;
 
-    // 🡄 🡆 🡅 🡇 🢠 🢡 , 🢢 🢣 , 🢤 🢧 , 🢦 🢥 🢀 🢂 🢁 🢃 🢄 🢅 🢆 🢇
     // ↰ ↱ ⇦ ⇨ 
     //     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
     //•↑↓↖↗↙↘←→▼▲►◄ ◢◣◤◥ ◀▼▲▶◀ 
     this.leftButton.text = "◀";
-    this.leftButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUILeft(); }
+    this.leftButton.isEnabled = false;
+    this.leftButton.textShiftX = -1;
+    this.leftButton.onPress = () => { 
+      ButtonView.prototype.onPress(); 
+      if (this.player.moveCount)
+        this.player.onPlayerLeft(); 
+      else
+        this.player.onUILeft(); 
+      this.draw();
+    }
   
     this.rightButton = new ButtonView(this.width / 2, this.height / 2, this.width / 2, this.height / 2, this, this.display);
     this.rightButton.border = 1;
     this.rightButton.text = "▶";
-    this.rightButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUILeft(); }
+    this.rightButton.onPress = () => { 
+      ButtonView.prototype.onPress(); 
+      if (this.player.moveCount)
+        this.player.onPlayerRight(); 
+      else 
+        this.player.onUIRight();
+      this.draw();
+    }
+  }
+
+  draw() {
+    if (this.player.moveCount) {
+      this.goButton.text = "\xa0▲ GO!";
+      this.goButton.textWrap = 3;
+      this.goButton.textShiftX = 2;
+      this.leftButton.isEnabled = this.player.canMove(g.DIR_INDEX.LEFT);
+      this.rightButton.isEnabled = this.player.canMove(g.DIR_INDEX.RIGHT);
+    }
+    else {
+      this.goButton.text = "[.][:] \xa0ROLL";
+      this.goButton.textWrap = 6;
+      this.goButton.textShiftX = 3;
+      this.leftButton.isEnabled = this.player.canShiftDown();
+      this.rightButton.isEnabled = this.player.canShiftUp();
+    }
+    super.draw();
   }
 }
 
@@ -1821,7 +1907,7 @@ class Game {
     this.views.push(new GearView(this, this.player));
     this.views.push(new ControlsView(this, this.player));
 
-    this.input = new InputManager([(event) => { event; this.draw() }], INPUT_CONTEXT.UI, this.views);
+    this.input = new InputManager([(event) => { event; this.draw(); }], INPUT_CONTEXT.UI, this.views);
     this.input.addInputActionListener(this.player);
 
     /*if (this.racetrack._isTranspose) {
@@ -1895,6 +1981,23 @@ class Game {
       maxWidth += this.views[VIEW.HUD_01].display.getContainer().offsetWidth;
     maxWidth += 16;
     this.div.style.maxWidth =  maxWidth + "px";
+
+    /*var canvas = this.views[VIEW.Game].display.getContainer();
+    var ctx = canvas.getContext('2d');
+
+    if (window.devicePixelRatio > 1) {
+      //  var canvasWidth = canvas.width;
+      //  var canvasHeight = canvas.height;
+    
+      //canvas.width = this.views[VIEW.Game].display.getContainer().offsetWidth * window.devicePixelRatio;
+      //canvas.height = this.views[VIEW.Game].display.getContainer().offsetHeight * window.devicePixelRatio;
+      //canvas.style.width = canvasWidth + "px";
+      //canvas.style.height = canvasHeight + "px";
+
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }*/
+    
+
 
     this.draw();
     /*let width = this.display.getOptions().width;
