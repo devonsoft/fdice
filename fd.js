@@ -1,37 +1,5 @@
 // @ts-check
 
-
-
-
-const myLevel = String.raw
-`
-              ##############
-          ####   \-   .   .
-      ###   \-               
-    ##  \-     \-   .   .   
-   #       \-               
-  #  /        -   .   .   .
- #      /       ############           
- # |/      /  ##                      
-#     |/    ##                   
-#  |/    |  #
-#     |/    #
-#  |/    |  #
-#     |     #
-#  B     .  #
-#     @     #
-#  .     P  #
-#     .     #
-#  .     .  #
-#     .     #
-#  .     .  #
-#     .     #
-#▄▀.▀▄▀▄▀.▀▄#
-#     .     #
-#  .     .  #
-`; 
-
-       
 const mySmallLevel = String.raw 
 `
  •·                                                                                                 RR##RR##RR########################################    
@@ -118,40 +86,7 @@ RR↑/  ↑ ##
 // QWE ASD ZXC =
 // ↖↑↗ ← → ↙↓↘ ▀
 
-const hexLevel = String.raw 
-`                                                                              
-                                                                 # # #        
-                                                              # ⇒ τ - ^ #     
-                                                             # ∠ → ⇒ . ⇘ #    
-                                                            # ∠ ∠ → ↘ ^ ^ #   
-                                                           # . ⬈ ⬈ # . . . #  
-                                                          # . . . # # . . . # 
-                                                         # . . . #   # . ⬊ - #
-                                                        # . . . #     # ⬊ ↘   
-                                                       # . . . #       #      
-                                                      # . . . #               
-                                                     # . . . #                
-                                                    # ∠ . . #                 
-                                                   # ∠ ∠ . #                  
-                                                  # ↗ ↗ ↗ #                   
-                                                 # ∠ ∠ ↗ #                    
-                                                  # v v ⬉ #                   
-                                                   # v ⬉ . #                  
-                                                    # . . ⦣ #                 
-                                                     # . ⦣ ⦣ #                
-                                                      # ↖ ⦣ ⦣ #               
-                             # # # # # # # # # # # # #   ↖ ↖ ⦣ #              
-      # # # # # # # # # # # # . . . . . . . . . . → → → ↗ v / #               
-     # → → τ t τ . . . . . . . . . . . . . . . . → ∠ → ∠ v v #                
-    # ∠ → τ τ . . . . . . . . . . . . . . . . . ∠ ∠ ∠ ∠ ↗   #                 
-   # ∠ ∠ → → . . . . . . . . # # # # # # # # # # # # # # # #                  
-  # ∠ ∠ ↗ # # # # # # # # # #                                                 
- # . ↗ ↗ #                                                                    
-# . . . #                                                                     
- . . . #                                                                      
-. . . #                                                                       
-. .                                                                           
-                                                                              `;
+
 
 // ↖↗↙↘←→ ∠⦢⩗⩘⍀^v<>   τt⍀⎲⋜⌐⍀ɾr٢ܑ ˁ˫٢   
 // ⦨⦩⦪⦫⦬⦭⦮⦯
@@ -167,6 +102,8 @@ const hexLevel = String.raw
 // ⮎ ⮌ ⮏ ⮍
 // 🠹 🠸 🠻 🠺
 //  ⭎ ⭏ 
+// 🡄 🡆 🡅 🡇 🢠 🢡 , 🢢 🢣 , 🢤 🢧 , 🢦 🢥 🢀 🢂 🢁 🢃 🢄 🢅 🢆 🢇
+// ↰ ↱ ↲ ↳ , ⬐ ⬎ ⬑ ⬏ , ↴ ↵
 
 
 // ↶	ANTICLOCKWISE TOP SEMICIRCLE ARROW
@@ -425,9 +362,10 @@ let INPUT_MAPPING = [{
 ];
 
 class InputManager {
-  constructor(listeners=[], context) {
+  constructor(listeners=[], context, views) {
     this.listeners = listeners;
     this.context = context;
+    this.views = views;
 
     this.inputStates = [];
     for (let i = 0; i < INPUT_MAPPING.length; ++i) {
@@ -457,7 +395,7 @@ class InputManager {
 
     window.addEventListener("pointerdown", (event) => { this.onPointerDown(event, INPUT_TRIGGER.Pressed) });
     window.addEventListener("pointerup", (event) => { this.onPointerUp(event, INPUT_TRIGGER.Released) });      
-    window.addEventListener("mousemoved", (event) => { this.onPointerMoved(event) });  
+    window.addEventListener("pointermove", (event) => { this.onPointerMove(event) });  
   }
 
   addInputActionListener(instance) {
@@ -480,6 +418,10 @@ class InputManager {
   }
 
   onInput(event) {
+    for (let i = 0; i < this.views.length; ++i) {
+      this.views[i].onEvent(event);
+    }
+
     for (let i = 0; i < this.listeners.length; ++i) {
       this.listeners[i](event);
     }
@@ -563,7 +505,7 @@ class InputManager {
     this.onInput(event);
   }
 
-  onPointerMoved(event, pressed) {
+  onPointerMove(event, pressed) {
     let x = event.clientX;
     let y = event.clientY;
 
@@ -1251,11 +1193,11 @@ class RaceCar {
     this.dirChars = {};
     this.dirChars[g.DIR.N] = "▲";
     this.dirChars[g.DIR.NE] = "◥";
-    this.dirChars[g.DIR.E] = "▶";
+    this.dirChars[g.DIR.E] = "▶"; // ►
     this.dirChars[g.DIR.SE] = "◢";
     this.dirChars[g.DIR.S] = "▼";
     this.dirChars[g.DIR.SW] = "◣";
-    this.dirChars[g.DIR.W] = "◀";
+    this.dirChars[g.DIR.W] = "◀"; // ◄
     this.dirChars[g.DIR.NW] = "◤";
 
     this.gear = 1;
@@ -1344,6 +1286,13 @@ class RaceCar {
     return this.shiftCount && this.gear > this.minGear && this.prevGear - this.gear < this.shiftCount;
   }
 
+  cycleShift() {
+    if (!this.onShiftUp()) {
+      this.gear = this.prevGear;
+      this.onShiftDown();
+    }
+  }
+
   onShiftUp() {
     if (this.canShiftUp()) {
       this.gear++;
@@ -1362,6 +1311,15 @@ class RaceCar {
       return false;
   }
 
+  onRollMovementDice() {
+    if (this.shiftCount) {
+      this.shiftCount = 0;
+      this.speed = this.dice[this.gear].roll();
+      this.moveCount = this.speed;
+      game.input.context = INPUT_CONTEXT.Player;
+    }
+  }
+
   onUIRight() {
     this.onShiftUp();
   }
@@ -1371,12 +1329,11 @@ class RaceCar {
   }
 
   onUIConfirm() {
-    if (this.shiftCount) {
-      this.shiftCount = 0;
-      this.speed = this.dice[this.gear].roll();
-      this.moveCount = this.speed;
-      game.input.context = INPUT_CONTEXT.Player;
-    }
+    this.onRollMovementDice();
+  }
+
+  onUIUp() {
+    this.onRollMovementDice();
   }
 
   onPlayerUp() {
@@ -1399,9 +1356,12 @@ class View {
     this.width = w;
     this.height = h;
     this.margin = 0;
+    this.border = 0;
     this.padding = 0;
     this.isVisible = true;
     this.title = "";
+    this.bg = "Black";
+    this.children = [];
 
     if (!display) {
       this.display = new ROT.Display({
@@ -1410,9 +1370,19 @@ class View {
         spacing: 1, 
         fontSize: 20});
       parent.appendChild(this.display.getContainer());
+      this.parent = null;
     }
-    else
+    else {
       this.display = display;
+      if (parent) {
+        this.parent = parent;
+        this.x += parent.x + parent.margin + parent.border + parent.padding;
+        this.y += parent.y +  Math.floor(parent.margin/2) + parent.border + Math.floor(parent.padding/2);
+        this.width -= parent.margin * 2 + parent.border * 2 + parent.padding * 2;
+        //this.height -= parent.margin * 2 + parent.border * 2 + parent.padding * 2;
+        this.parent.children.push(this);
+      }
+    }
 
     /*let isAlreadyChild = false;
     for (let i = 0; i < div.childNodes.length; i++) {
@@ -1430,18 +1400,33 @@ class View {
   }
 
   isPointInside(x, y) {
-    return x >= this.x && x < this.x + this.width &&
-      y >= this.y && y < this.y + this.height;
+    let  margin = this.margin;
+    //if (u.isMobile())
+    //  margin += this.border;
+    return (x >= this.x + margin && x < this.x + this.width - margin) 
+      && (y >= this.y + margin && y < this.y + this.height - margin);
+  }
+
+  onEvent(event) {
+    for (let i = 0; i < this.children.length; ++i) {
+      this.children[i].onEvent(event);
+    }
   }
 
   draw() {
+    for (let i = 0; i < this.children.length; ++i) {
+      this.children[i].draw();
+    }
+
+    this.drawBorder();
+    /*
     let w = this.x + this.width;
     let h = this.y + this.height;
     for (let x = this.x; x < w; x++) {
       for (let y = this.y; y < h; y++) {
           this.display.draw(x, y, " ", "green", "green");
       }
-    }
+    }*/
   }
 
   clear() {
@@ -1449,34 +1434,68 @@ class View {
   }
 
   drawBorder() {
+    if (this.border < 1)
+      return;
+
+    if (!this.title)
+      this.x = this.x;
     let w = this.x + this.width;
     let h = this.y + this.height;
     let titleX = Math.ceil(this.width / 2) - (this.title.length / 2);
     let margin = this.margin;
     let marginY = Math.floor(margin/2);
-    for (let x = this.x + margin; x < w; x += w - (margin * 2 + 1)) {
+    for (let x = this.x + margin; x < w; x += this.width - (margin * 2 + 1)) {
       for (let y = this.y + marginY + 1; y < h - (marginY + 1); y++) {
-          this.display.draw(x, y, "|", "white", "black");
+          this.display.draw(x, y, "|", "white", this.bg);
       }
     }
     let yStart = this.y + marginY;
     for (let x = this.x + margin + 1; x < w - margin - 1; x++) {
-      for (let y = yStart; y < h; y += h - (marginY * 2 + 1)) {
+      for (let y = yStart; y < h; y += this.height - (marginY * 2 + 1)) {
           if (y == yStart && x >= titleX && x < titleX + this.title.length)
-            this.display.draw(x, y, this.title[x - titleX], "white", "black");
+            this.display.draw(x, y, this.title[x - titleX], "white", this.bg);
           else
-            this.display.draw(x, y, "-", "white", "black");
+            this.display.draw(x, y, "-", "white", this.bg);
       }
     }
   }   
 };
 
 
-class GameView extends View {
-  constructor(x, y, w, h, div) {
+class LevelView extends View {
+  constructor(x, y, w, h, div, player) {
     super(x, y, w, h, div);
-
+    this.racetrack = new RacetrackMap(mySmallLevel, false);
+    this.player = new RaceCar(4, 26, "green", this.racetrack);
     this.display.getContainer().style.float = "left";
+  }
+
+  draw() {
+    this.clear();
+    let w = this.width;
+    let h = this.height;
+    let playerViewX = w / 2;
+    let playerViewY = h / 2;
+    let originX = this.player.x - playerViewX;
+    let originY = this.player.y - playerViewY;
+    if (originX < 0) {
+      playerViewX += originX;
+      originX = 0;
+    }
+    else if (originX + w > this.racetrack._width) {
+      playerViewX += (originX + w) - this.racetrack._width;
+      originX = this.racetrack._width - w;
+    }
+    if (originY < 0) {
+      playerViewY += originY;
+      originY = 0;
+    }
+    else if (originY + h > this.racetrack._height) {
+      playerViewY += (originY + h) - this.racetrack._height;
+      originY = this.racetrack._height - h;
+    }
+    this.racetrack.draw(this.display, originX, originY, w, h);
+    this.player.draw(this.display, playerViewX, playerViewY);    
   }
 };
 
@@ -1486,6 +1505,13 @@ class ButtonView extends View {
     this.isEnabled = true;
     this.isDown = false;
     this.isHover = false;
+    this.text = "";
+    this.textColor = "White";
+    this.hoverColor = "#666";
+    this.upColor = "Black";
+    this.downColor = "#444";
+    this.bg = this.upColor;
+    
   }
 
   isEventInside(event) {
@@ -1510,30 +1536,87 @@ class ButtonView extends View {
       this.onDown();
     }
     else if (event.type == "pointerup") {
-      if (isInside && this.isDown)
+      if (isInside && this.isDown) {
         this.onPress();
+        if (event.pointerType != "mouse")
+          this.onOut();
+      }
+      else
+        this.onOut();
       this.isDown = false;
     }
     else if (event.type == "pointermove") {
-        this.isHover = isInside;
+      if (this.isHover && !isInside) {
+        this.onOut();
+        this.isHover = false;
+      }
+      else if (!this.isHover && isInside && event.pointerType == "mouse") {
+        this.onHover();       
+        this.isHover = true;
+      }
     }
+    else {
+      this.onOut();
+      this.isHover = false;
+    }
+
+    super.onEvent(event);
   }
 
   onDown() {
-
+    this.bg = this.downColor;
   }
 
   onHover() {
-    //if (this.isEnabled &&this.isDown )
+    this.bg = this.hoverColor;
+    //this.display.setOptions({bg: "#222"});
+  }
+
+  onOut() {
+    //this.display.setOptions({bg: "Black"});
+    this.bg = this.upColor;
+    this.isHover = false;
   }
 
   onPress() {
-
+    if (this.isHover)
+      this.bg = this.hoverColor;
+    else
+      this.bg = this.upColor;
+    //this.isHover = false;
   }
 
+  draw() {
+    //this.clear();
+    let w = this.x + this.width - this.border;
+    let h = this.y + this.height - this.border;
+    for (let x = this.x + this.border; x < w; x++) {
+      for (let y = this.y + this.border; y < h; y++) {
+          this.display.drawOver(x, y, "", null, this.bg);
+      }
+    }
+
+    if (this.text) {
+      let color = this.textColor;
+      //let bg = "";
+      if (this.isHover || this.isDown) {
+        color = "Black";
+        //bg = this.hoverColor;
+      }
+      this.display.drawText(
+        this.x + Math.floor(this.width / 2) - Math.floor(this.text.length / 2), 
+        this.y + Math.floor(this.height/2), 
+        "%c{" + color + "}" + "%b{" + this.bg + "}" + this.text);
+    }
+    if (this.isDown)
+      this.bg = this.upColor;
+    super.draw();
+    if (this.isDown)
+      this.bg = this.downColor;
+  }
 };
 
-class HUDView extends ButtonView {
+class HUDView extends View {
   /**
    * @param {game} Game
    * @param {RaceCar} player
@@ -1548,12 +1631,45 @@ class HUDView extends ButtonView {
     this.player = player;
     this.margin = u.scaleMobile(1);
     this.padding = u.scaleMobile(2);
-    this.title = "GEAR-SHIFT";
+    this.border = 1;
+    this.bg = "black";
 
+  }
+
+  onHover() {
+    this.display.setOptions({bg: "#222"});
+  }
+
+  onOut() {
+    this.display.setOptions({bg: "Black"});
   }
 
   draw() {
     this.clear();
+    super.draw();
+  }
+}
+
+class GearView extends HUDView {
+  constructor(game, player) {
+    super(game, player);
+    this.title = "GEAR-SHIFT";
+  }
+
+  onPress() {
+    this.player.cycleShift();
+  }
+
+  draw() {
+    super.draw();
+    
+    /*
+    for (let x =0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        this.display.draw(x, y, " " , "gray", "gray");
+      }
+    }*/
+
     //super.draw();
     let x = this.margin+this.padding;
     let y = Math.ceil((this.margin+this.padding) / 2);
@@ -1561,7 +1677,7 @@ class HUDView extends ButtonView {
     let unavailable = "DimGray"
     let active = "LawnGreen";
 
-    this.drawBorder();
+
     /*for (let i = this.player.gear; i < this.player.gear+1; ++i) {
       let gearColor = inactive;
       if (this.player.shiftCount && i == this.player.gear)
@@ -1578,11 +1694,15 @@ class HUDView extends ButtonView {
     let dc = this.player.diceColor;
     let gearNumberString = ""
     let gearVertLineString = "";
-    let gearDividerString = "----------------";
+    let gearDividerString = "--------------";
     let gearSpeedString = "";
-    for (let i = 1; i < this.player.diceColor.length; ++i) {
+    let length = this.player.diceColor.length;
+    for (let i = 1; i < length; ++i) {
       let gearColor = unavailable;
-      let spacing = "  ";
+      let spacing = "";
+      if (i != 1 && i != length-2)
+        spacing = " ";
+      let rightArrow = " ";
       if (i == this.player.gear) {
         let min = this.player.dice[i].min;
         let max = this.player.dice[i].max;
@@ -1595,15 +1715,16 @@ class HUDView extends ButtonView {
           gearSpeedString = `${this.player.speed} Speed`;
         }
         if (this.player.canShiftUp())
-          spacing = "%c{" + inactive + "}► ";
+          rightArrow = "%c{" + inactive + "}►";
         if (this.player.canShiftDown()) {
-          let prevCharIndex = gearVertLineString.length - 3;
-          gearVertLineString = gearVertLineString.substring(0, prevCharIndex) + "%c{" + inactive + "}| ◄";
+          let prevCharIndex = gearVertLineString.lastIndexOf("|");//gearVertLineString.length - 3;
+          let prevLength = gearVertLineString.length;
+          gearVertLineString = gearVertLineString.substring(0, prevCharIndex) + "%c{" + inactive + "}";
+          if (prevLength - prevCharIndex > 2)
+            gearVertLineString += "| ◄";
+          else
+            gearVertLineString += "|◄";
         }
-
-          
-       
-
         /*let fillerLength = Math.floor((16 - gearSpeedString.length) / 2); 
         
         for (let c = 0; c < fillerLength; ++c) {
@@ -1620,15 +1741,16 @@ class HUDView extends ButtonView {
       }
       let min = this.player.dice[i].min;
       let max = this.player.dice[i].max;
-      gearNumberString += "%c{" + gearColor + "}" + i + "  ";
-      //gearNumberString += spacing;
+      gearNumberString += "%c{" + gearColor + "}" + i + " " + spacing;
 
+
+      //gearNumberString += spacing;
       gearVertLineString += "%c{" + gearColor + "}" + "|";
-      gearVertLineString += spacing
+      gearVertLineString += rightArrow + spacing;
     }
-    this.display.drawText(x-1, y+=1, gearNumberString);
-    this.display.drawText(x-1, y+=1, gearVertLineString);
-    this.display.drawText(x-1, y+=1, gearDividerString);
+    this.display.drawText(x, y+=1, gearNumberString);
+    this.display.drawText(x, y+=1, gearVertLineString);
+    this.display.drawText(x, y+=1, gearDividerString);
     this.display.drawText(x, y+=1, gearSpeedString);
     this.display.drawText(x, y+=1, `%c{${fg}}Moves: ${this.player.moveCount} / ${this.player.speed}`);
     /*
@@ -1644,6 +1766,37 @@ class HUDView extends ButtonView {
   }
 }
 
+class ControlsView extends HUDView {
+  constructor(game, player) {
+    super(game, player);
+    this.title = "ROLL MOVEMENT DICE";
+
+    this.margin = u.scaleMobile(0);
+    this.padding = u.scaleMobile(1);
+    this.border = 0;
+
+    this.goButton = new ButtonView(0, 0, this.width, this.height / 2, this, this.display);
+    this.goButton.border = 1;
+    this.goButton.text = "GO!";
+    this.goButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUIConfirm(); }
+    
+    this.leftButton = new ButtonView(0, this.height / 2, this.width / 2, this.height / 2, this, this.display);
+    this.leftButton.border = 1;
+
+    // 🡄 🡆 🡅 🡇 🢠 🢡 , 🢢 🢣 , 🢤 🢧 , 🢦 🢥 🢀 🢂 🢁 🢃 🢄 🢅 🢆 🢇
+    // ↰ ↱ ⇦ ⇨ 
+    //     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
+    //•↑↓↖↗↙↘←→▼▲►◄ ◢◣◤◥ ◀▼▲▶◀ 
+    this.leftButton.text = "◀";
+    this.leftButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUILeft(); }
+  
+    this.rightButton = new ButtonView(this.width / 2, this.height / 2, this.width / 2, this.height / 2, this, this.display);
+    this.rightButton.border = 1;
+    this.rightButton.text = "▶";
+    this.rightButton.onPress = () => { ButtonView.prototype.onPress(); this.player.onUILeft(); }
+  }
+}
+
 const VIEW = {
   Game: 0,
   HUD_01: 1,
@@ -1654,10 +1807,21 @@ const VIEW = {
 class Game {
   constructor() {
     //document.body.style.background = g.COLOR.Asphalt;
+    this.div = document.createElement("game");
+    this.div.style.display = "table";
+    this.div.style.margin = "0 auto";
+    document.body.appendChild(this.div);
 
-    this.input = new InputManager([(event) => { event; this.draw() }], INPUT_CONTEXT.UI);
-    this.racetrack = new RacetrackMap(mySmallLevel, false);
-    this.player = new RaceCar(4, 26, "green", this.racetrack);
+    this.views = [];
+    this.startWidth = u.scaleMobile(96);
+    this.startHeight = u.scaleMobile(48);
+    let levelView = new LevelView(0, 0, this.startWidth, this.startHeight, this.div);
+    this.player = levelView.player;
+    this.views.push(levelView);
+    this.views.push(new GearView(this, this.player));
+    this.views.push(new ControlsView(this, this.player));
+
+    this.input = new InputManager([(event) => { event; this.draw() }], INPUT_CONTEXT.UI, this.views);
     this.input.addInputActionListener(this.player);
 
     /*if (this.racetrack._isTranspose) {
@@ -1672,24 +1836,8 @@ class Game {
 
 
     //this.display.getContainer().parentNode.style.textAlign = "center";
-    this.div = document.createElement("game");
-    this.div.style.display = "table";
-    this.div.style.margin = "0 auto";
-    document.body.appendChild(this.div);
-
-    this.views = [];
-    this.startWidth = u.scaleMobile(96);
-    this.startHeight = u.scaleMobile(48);
-    this.views.push(new GameView(0, 0, this.startWidth, this.startHeight, this.div));
-    this.views.push(new HUDView(this, this.player));
-
-    
     //this.display.getContainer().style.display = "inline-block";
     //this.display.getContainer().style.verticalAlign = "top";
-
-    // @ts-ignore
-
-
     this.draw();
     //this.sketchbook();
     this.scaleToWindow();
@@ -1772,33 +1920,9 @@ class Game {
     }*/
   }
 
-  draw() {
-    this.views[VIEW.Game].clear();
-    let w = this.views[VIEW.Game].width;
-    let h = this.views[VIEW.Game].height;
-    let playerViewX = w / 2;
-    let playerViewY = h / 2;
-    let originX = this.player.x - playerViewX;
-    let originY = this.player.y - playerViewY;
-    if (originX < 0) {
-      playerViewX += originX;
-      originX = 0;
-    }
-    else if (originX + w > this.racetrack._width) {
-      playerViewX += (originX + w) - this.racetrack._width;
-      originX = this.racetrack._width - w;
-    }
-    if (originY < 0) {
-      playerViewY += originY;
-      originY = 0;
-    }
-    else if (originY + h > this.racetrack._height) {
-      playerViewY += (originY + h) - this.racetrack._height;
-      originY = this.racetrack._height - h;
-    }
-    this.racetrack.draw(this.views[VIEW.Game].display, originX, originY, w, h);
-    this.player.draw(this.views[VIEW.Game].display, playerViewX, playerViewY);    
-    this.views[VIEW.HUD_01].draw();
+  draw() {   
+    for (let i = 0; i < this.views.length; ++i)
+      this.views[i].draw();
   }
 
   testPathfinding() {
