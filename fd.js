@@ -8,21 +8,21 @@ const mySmallLevel = String.raw
                                                                                                 ##  ↗-  →   .   .   .   .   .   .   .   .   →   ↘  /↓   ##
                                                                                                 RR↑/  ↗ RR########################################↓  /↓ ##  ################               
                                                                                                 ##  ↑/  ##                                      ## /↓   ## ##  →\  →\  →\     ##    
-                                                                                                RR↑/  ↑ ##  2 STOPS                    2 STOPS  ##   /↓ ##  ##  /   →\  →\  →\  \  #   
+                                                                                                RR↑/  ↑ ##                                      ##   /↓ ##  ##  /   →\  →\  →\  \  #   
                                                                                                 ##  ↑   ##                                      ##      ##  ##    /   →   →   \    #
                                                                                                 ##.   . ##
                                                                                                 ##  .   ##                                      #       ## ↑/   / ##### \   /↓ #
                                                                                                 ##.  \↑ RR                                      #       ##   ↑/  #     #  /↓   #
                                                                                                 ## \↑  -↖ ##                                    #       ## ↑/  ↑ #     #    /↓ #
-                                                                                        2 STOPS RR↑  -↖   RR                                     #   ↓   ##   ↑/  #     #       #
+                                                                                                RR↑  -↖   RR                                     #   ↓   ##   ↑/  #     #       #
                                                                                               ##↗   ↗  \↑ ##                                     # ↓\  ↘ ## ↑/ \↑ #     #       #
     RR##RR##RR##########################################################################RR##RR↗  \↗  \↗ RR                                       #   ↘-   ↗  \↑   #
   ##→\  →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →   ↗  \↗  \↗ ##                                         # ↘-   →   /  \↑ #
 RR↗   →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →/  →  \↗   ↗ RR                                            ##  →   →/  / ##
 ##  ↗   →   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →/  →/  →/ |↗ ##                                                 ############
-RR↑/  ↗ RR##########################################################################RR##RR##RR##RR                                      3 STOPS:18/8
+RR↑/  ↗ RR##########################################################################RR##RR##RR##RR                                      
 ##  ↑/  ##                                                                          
-RR↑/  ↑ RR  2 STOPS          
+RR↑/  ↑ RR  
 ##  ↑/  ##
 RR↑/  ↑ ##
 #   ↑   # 
@@ -201,6 +201,18 @@ class Utilities {
     }
     return result;
     // return a.map((x, i) => a[i] * b[i]).reduce((m, n) => m + n);
+  }
+
+  addArray(a, b) {
+    return [a[0] + b[0], a[1] + b[1]];
+  }
+
+  multiplyArray(a, b) {
+    return [a[0] * b[0], a[1] * b[1]];
+  }
+
+  scaleArray(a, scalar) {
+    return [a[0] * scalar, a[1] * scalar];
   }
 
   getKeyByValue(object, value) {
@@ -610,7 +622,7 @@ class RaceTile {
   }
 
   isPassable() {        
-    return g.NODE_CHARS.includes(this.char) || g.DIR_CHARS.includes(this.char);
+    return !this.isWall && (g.NODE_CHARS.includes(this.char) || g.DIR_CHARS.includes(this.char));
   }
 
   copy(that) {
@@ -699,7 +711,7 @@ class RacetrackMap extends ROT.Map.Arena {
     this._isTranspose = isTranspose;
     this._isSquare = false;
     this._tiles = []
-    this._cornerEntrancePositions = [];
+    this._cornerEntracePositions = [];
     if (stringMap)
       this.loadFromString(stringMap);
   }
@@ -767,6 +779,7 @@ class RacetrackMap extends ROT.Map.Arena {
     this._decodeCornerEntranceArrows();
     this._decodeCornerBGColor();
     this._decodeNeighbors();
+    this._decodeCornerStops();
   }
 
   _decodeCornerEntranceArrows() {
@@ -786,15 +799,30 @@ class RacetrackMap extends ROT.Map.Arena {
           for (let i = 0; i < dirs.length; i++) {
             let dir = dirs[i];
             let n = this.getTile(x + dir[0], y + dir[1]);
+
+            // The entrance arrows should not have a red background.
             if (n.char == RACE_TILE_FACTORY["."].char
               && this.getTile(x + 1, y).bg != g.COLOR.AsphaltRed 
               && this.getTile(x - 1, y).bg != g.COLOR.AsphaltRed) 
             {           
-              let newTile = this._createTile(tile.char+n.bg);//new RaceTile(tile);//Object.assign(Object.create(RaceTile), tile);
+              let newTile = this._createTile(tile.char + n.bg);//new RaceTile(tile);//Object.assign(Object.create(RaceTile), tile);
               //newTile.bg = n.bg;
               this.setTile(x, y, newTile);
-              this._cornerEntrancePositions.push([x, y]);
 
+              // Store the inside and outside lane entrances for stop calculation.
+              
+              let offset = [2, 1];
+              let normDir = u.normalizeArray(newTile.dirs[0]);
+
+              // Multiply by swizzled to check horizontal if vertical arrow and vertical if horizontal arrow.
+              offset[0] *= Math.abs(normDir[1]);
+              offset[1] *= Math.abs(normDir[0]);
+
+              // Check left and right tiles by the x offset if up/down arrow or top and bottom tiles by the y offset if left/right arrow.
+              if ((this.getTile(x + offset[0], y + offset[1]).isWall || this.getTile(x - offset[0], y - offset[1]).isWall))
+              {
+                this._cornerEntracePositions.push([x, y]);  
+              }
               break;
             }
             else if (n.char == tile.char)
@@ -803,6 +831,175 @@ class RacetrackMap extends ROT.Map.Arena {
         }
       }
     }
+  }
+
+  _decodeCornerStops() {
+    // Knowing the inside corner entrance positions, find and store the other outside two in the array.
+    for (let i = 0; i < this._cornerEntracePositions.length; ++i) {
+      let x = this._cornerEntracePositions[i][0];
+      let y = this._cornerEntracePositions[i][1];
+
+      let dirs = [
+        g.DIR.NW, 
+        g.DIR.NE,
+        g.DIR.SE,
+        g.DIR.SW];
+
+      for (let d = 0; d < dirs.length; ++d) {
+        let outsideX = x; 
+        let outsideY = y;
+        for (let t = 0; t < 2; ++t) {
+          outsideX += dirs[d][0];
+          outsideY += dirs[d][1];
+          let outsideTile = this.getTile(outsideX, outsideY);
+          if ((g.DIR_CHARS.includes(outsideTile.char) 
+            && outsideTile.bg != g.COLOR.AsphaltRed) 
+              || t == 1) 
+          {
+            this._cornerEntracePositions.splice(++i, 0, [outsideX, outsideY]);
+          }
+          else
+            break;
+        }
+      }
+    }
+
+    for (let i = 0; i < this._cornerEntracePositions.length; i += 3) {
+      // inside, middle, outside lanes
+      let distances = [0, 0, 0];
+      let cornerTiles = [];
+      for (let j = i; j < i + 3; j++) {
+        let x = this._cornerEntracePositions[j][0];
+        let y = this._cornerEntracePositions[j][1];
+        let tile = this.getTile(x, y);
+        let dir = tile.dirs[g.DIR_INDEX.FORWARD];
+        x += dir[0];
+        y += dir[1]; 
+        tile = this.getTile(x, y);
+        while (tile.bg == g.COLOR.AsphaltRed) {
+          distances[j - i]++;
+          tile = new RaceTile(tile);
+          this.setTile(x, y, tile);
+          cornerTiles.push(tile);
+          dir = tile.dirs[g.DIR_INDEX.FORWARD];
+          x += dir[0];
+          y += dir[1]; 
+          tile = this.getTile(x, y);
+        }
+      }
+
+      // Best Guess Stop Count, should allow to load from map as well.
+      let stopCount = 1;
+      if (distances[2] > 14)
+        stopCount = 3;
+      else if (distances[2] > 10) {
+        stopCount = 2;
+        //if (distances[2] > 12 && distances[2] - distances[0] > 4)
+        //  stopCount = 1;
+      }
+
+      for (let ct = 0; ct < cornerTiles.length; ct++) {
+        cornerTiles[ct].stopCount = stopCount;
+      }
+
+      let offsets = [[6, 0], [0, 3], [0, -3]];
+      for (let o = 0; o < offsets.length; ++o) {
+        let x = this._cornerEntracePositions[i][0];
+        let y = this._cornerEntracePositions[i][1];
+        x += offsets[o][0];
+        y += offsets[o][1];
+        let stopsText = "STOPS: " + stopCount;
+        let isEmpty = true;
+        for (let c = 0; c < stopsText.length; ++c) {
+          let tile = this.getTile(x + c, y);
+          if (tile && tile.char == " ")
+            continue;
+          isEmpty = false;
+          break;
+        }
+        if (o == 1 && !isEmpty) {
+          isEmpty = true;
+          x -= stopsText.length - 2;
+          for (let c = 0; c < stopsText.length; ++c) {
+            let tile = this.getTile(x + c, y);
+            if (tile && tile.char == " ")
+              continue;
+            isEmpty = false;
+            break;
+          }          
+        }
+        if (isEmpty) {
+          for (let c = 0; c < stopsText.length; ++c) {
+            let tile = new RaceTile(stopsText.charAt(c), "Black", "Yellow");
+            this.setTile(x + c, y, tile);
+          }
+          break;
+        }
+      }
+      let x = this._cornerEntracePositions[i][0];
+      let y = this._cornerEntracePositions[i][1];
+      offsets = [[2, 0], [-2, 0]];
+      let tile = this.getTile(x, y);
+      // Direction is Horizontal
+      if (tile.dirs[0][0] != 0) 
+        offsets = [[0, 1], [0, -1]];
+
+      for (let o = 0; o < offsets.length; ++o) {
+        let wallX = x + offsets[o][0];
+        let wallY = y + offsets[o][1];
+        tile = this.getTile(wallX, wallY);
+        if (tile && tile.isWall) {
+          let insideDistanceText = distances[0].toString();
+          for (let c = 0; c < insideDistanceText.length; ++c) {
+            tile = this.getTile(wallX + c, wallY);
+            tile = new RaceTile(tile);
+            tile.char = insideDistanceText.charAt(c);
+            tile.fg = g.COLOR.BrightRed;
+            this.setTile(wallX + c, wallY, tile);
+          }
+
+          let offset = u.scaleArray(offsets[o], 4);
+          wallX -= offset[0];
+          wallY -= offset[1];
+          tile = this.getTile(wallX, wallY);
+          if (tile && tile.isWall) {
+            let outsideDistanceText = distances[2].toString();
+            for (let c = 0; c < outsideDistanceText.length; ++c) {
+              tile = this.getTile(wallX + c, wallY);
+              tile = new RaceTile(tile);
+              tile.char = outsideDistanceText.charAt(c);
+              tile.fg = "GreenYellow";
+              this.setTile(wallX + c, wallY, tile);
+            }
+          }
+        }
+      }
+
+
+    }
+
+    
+
+    //let offset = [2, 1];
+    ///\let normDir = u.normalizeArray(newTile.dirs[0]);
+
+    /*
+    offset[0] *= Math.abs(normDir[1]);
+    offset[1] *= Math.abs(normDir[0]);
+
+        let offsetX = 2;     
+        if (newTile.dirs[0][0] != 0)
+          offsetX * -Math.sign(newTile.dirs[0][0]);
+        let outsideLaneX = x - offsetX;
+        let offsetY = u.normalizeArray(newTile.dirs[0])[1];
+        let outsideLaneY = y - offsetY; 
+        if (this.getTile(outsideLaneX, outsideLaneY).char == "." 
+          && this.getTile(x - offsetX, y + offsetY).bg == g.COLOR.AsphaltRed) 
+        {
+          this._cornerEntrancePositions.push([outsideLaneX, outsideLaneY]);
+        }                 
+        else if (this.getTile(outsideLaneX = x + offset[0], outsideLaneY = y + offset[1]).char == ".")
+          this._cornerEntrancePositions.push([outsideLaneX, outsideLaneY]);  */
   }
 
   _decodeCornerBGColor() {
@@ -1082,6 +1279,14 @@ class RacetrackMap extends ROT.Map.Arena {
           }
         }
       }
+
+      /*
+      for (let i = 0; i < this._cornerEntracePositions.length; ++i) {
+        let x = this._cornerEntracePositions[i][0];
+        let y = this._cornerEntracePositions[i][1];
+        display.drawOver(x-originX, y-originY, this.getTile(x, y).char, "Yellow");
+      }
+      */
     }
   }
 
@@ -1233,6 +1438,12 @@ class RaceCar {
     this.speed = 0;
     this.moveCount = 0;
 
+    this.place = 0;
+    this.stopCount = -1;
+    this.stopCountNeeded = 0;
+    this.maxWP = 18;
+    this.wp = this.maxWP;
+
 
 
     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
@@ -1266,21 +1477,54 @@ class RaceCar {
     game.input.context = INPUT_CONTEXT.UI;
   }
 
+  deductWP(damage) {
+    this.wp -= damage;
+    //if (this.wp <= 0)
+  }
+
   move(dirIndex) {
     if (this.moveCount) {
       let tile = this.racetrack.getTile(this.x, this.y);
+      let cornerStopCount = 0;
       if (tile && tile.dirs.length > dirIndex) {
+        cornerStopCount = tile.stopCount;
         let dir = tile.dirs[dirIndex];
         let x = this.x + dir[0];
         let y = this.y + dir[1];
         tile = this.racetrack.getTile(x, y);
         if (tile && tile.isPassable()) {
+          if (tile.stopCount && this.stopCountNeeded <= 0) {
+            this.stopCount = 0;
+            this.stopCountNeeded = tile.stopCount;
+            this.overShootCount = 0;
+          }
+          else if (!tile.stopCount && this.stopCountNeeded > 0) {           
+            if (this.stopCount < this.stopCountNeeded) {
+              
+              if (this.stopCountNeeded > 1 && this.stopCountNeeded - this.stopCount > 1) {
+                // Overshoot too much and die
+                this.deductWP(this.wp);
+              }
+              else
+                this.deductWP(this.moveCount);
+
+              this.stopCountNeeded = -this.stopCountNeeded;
+            }
+            else 
+              this.stopCountNeeded = 0;
+          }
           this.moveCount--;
           this.x = x;
           this.y = y;
         }
       }
       if (this.moveCount == 0) {
+        if (tile.stopCount && this.stopCountNeeded > 0)
+          this.stopCount++;
+        else if (this.stopCountNeeded <= 0) {
+          this.stopCountNeeded = 0;
+          this.stopCount = 0;
+        }
         this.startTurn();
       }
     }
@@ -1383,6 +1627,7 @@ class View {
     this.isVisible = true;
     this.title = "";
     this.bg = "Black";
+    //this.textColor = "#ccc";
     this.children = [];
     this.isEnabled = true;
     this.disabledColor = "DimGray";
@@ -1494,8 +1739,10 @@ class LevelView extends View {
   constructor(x, y, w, h, div, player) {
     super(x, y, w, h, div);
     this.racetrack = new RacetrackMap(mySmallLevel, false);
-    this.player = new RaceCar(4, 26, "green", this.racetrack);
+    this.player = new RaceCar(4, 44, "green", this.racetrack);
     this.display.getContainer().style.float = "left";
+    this.border = 1;
+    this.hudbarHeight = 2;
   }
 
   draw() {
@@ -1514,16 +1761,40 @@ class LevelView extends View {
       playerViewX += (originX + w) - this.racetrack._width;
       originX = this.racetrack._width - w;
     }
-    if (originY < 0) {
-      playerViewY += originY;
-      originY = 0;
+    if (originY < -this.hudbarHeight) {
+      playerViewY += originY + this.hudbarHeight;
+      originY = -this.hudbarHeight;
     }
     else if (originY + h > this.racetrack._height) {
       playerViewY += (originY + h) - this.racetrack._height;
       originY = this.racetrack._height - h;
     }
     this.racetrack.draw(this.display, originX, originY, w, h);
-    this.player.draw(this.display, playerViewX, playerViewY);    
+    this.player.draw(this.display, playerViewX, playerViewY); 
+
+    //this.drawBorder();
+    this.drawHUDBar();   
+  }
+
+  drawHUDBar() {
+    for (let x =0; x < this.width; x++) {
+      for (let y = 0; y < this.hudbarHeight; y++) {
+        this.display.draw(x, y, " " , "White", "Black");
+      }
+    }
+    let placeText = "Place: " + this.player.place + "/10";
+    let WPText = "WP: " + this.player.wp + "/" + this.player.maxWP;
+    let stopsText = "Stops: " + this.player.stopCount + "/" + Math.abs(this.player.stopCountNeeded); 
+    let x = 0;//this.margin+this.padding;
+    let y = 1;
+    if (this.player.stopCountNeeded < 0 && this.player.stopCount < Math.abs(this.player.stopCountNeeded)) {
+      stopsText = "%c{Red}" + stopsText;
+      WPText = "%c{Orange}" + WPText;
+    }
+    this.display.drawText(x+=1, y, placeText);
+    this.display.drawText(x+=13, y, WPText);
+    if (this.player.stopCountNeeded != 0)
+      this.display.drawText(x+=11, y, stopsText);
   }
 };
 
@@ -1626,7 +1897,7 @@ class ButtonView extends View {
     let h = this.y + this.height - this.border;
     for (let x = this.x + this.border; x < w; x++) {
       for (let y = this.y + this.border; y < h; y++) {
-          this.display.drawOver(x, y, "", null, this.bg);
+          this.display.draw(x, y, " ", null, this.bg);
       }
     }
 
@@ -1767,6 +2038,15 @@ class GearView extends HUDView {
             gearVertLineString += "| ◄";
           else
             gearVertLineString += "|◄";
+
+          /*prevCharIndex = gearNumberString.lastIndexOf((i-1).toString());
+          prevLength = gearNumberString.length;
+          gearNumberString = gearNumberString.substring(0, prevCharIndex) + "%c{" + inactive + "}";
+          gearNumberString += i - 1;
+          if (prevLength - prevCharIndex > 2)
+            gearNumberString += " ◄";
+          else
+            gearNumberString += "◄";*/       
         }
         /*let fillerLength = Math.floor((16 - gearSpeedString.length) / 2); 
         
@@ -1784,7 +2064,7 @@ class GearView extends HUDView {
       }
       let min = this.player.dice[i].min;
       let max = this.player.dice[i].max;
-      gearNumberString += "%c{" + gearColor + "}" + i + " " + spacing;
+      gearNumberString += "%c{" + gearColor + "}" + i + " "/*rightArrow*/ + spacing;
 
 
       //gearNumberString += spacing;
@@ -1795,7 +2075,7 @@ class GearView extends HUDView {
     this.display.drawText(x, y+=1, gearVertLineString);
     this.display.drawText(x, y+=1, gearDividerString);
     this.display.drawText(x, y+=1, gearSpeedString);
-    this.display.drawText(x, y+=1, `%c{${fg}}Moves: ${this.player.moveCount} / ${this.player.speed}`);
+    this.display.drawText(x, y+=1, `%c{${fg}}Moves: ${this.player.moveCount}/${this.player.speed}`);
     /*
     this.display.drawText(x, y+=1, "1     3     5");
     this.display.drawText(x, y+=1, "|     |     |");
@@ -1883,6 +2163,26 @@ class ControlsView extends HUDView {
   }
 }
 
+class StatsView extends HUDView {
+  constructor(game, player) {
+    super(game, player);
+    this.isEnabled = false;
+  }
+
+  draw() {
+    super.draw();
+    let placeText = "Place: ";
+    let WPText = "WP: ";
+    let stopsText = "Stops: ";
+    let x = this.margin+this.padding;
+    let y = Math.ceil((this.margin+this.padding) / 2);
+    this.display.drawText(x, y+=1, placeText);
+    this.display.drawText(x, y+=1, WPText);
+    this.display.drawText(x, y+=1, stopsText);
+    
+  }
+}
+
 const VIEW = {
   Game: 0,
   HUD_01: 1,
@@ -1906,6 +2206,7 @@ class Game {
     this.views.push(levelView);
     this.views.push(new GearView(this, this.player));
     this.views.push(new ControlsView(this, this.player));
+    this.views.push(new StatsView(this, this.player));
 
     this.input = new InputManager([(event) => { event; this.draw(); }], INPUT_CONTEXT.UI, this.views);
     this.input.addInputActionListener(this.player);
