@@ -2,7 +2,7 @@
 
 const mySmallLevel = String.raw 
 `
- •·                                                                                                 RR##RR##RR########################################    
+                                                                                                    RR##RR##RR########################################    
                                                                                                   ##→   →\  →\  .   .   .   .   .   .   .   →\  →\ /↘ ## 
                                                                                                 RR↗-  →   →\  .   .   .   .   .   .   .   →   →\  ↘   ↓ ##
                                                                                                 ##  ↗-  →   .   .   .   .   .   .   .   .   →   ↘  /↓   ##
@@ -25,61 +25,56 @@ RR↑/  ↗ RR##################################################################
 RR↑/  ↑ RR  
 ##  ↑/  ##
 RR↑/  ↑ ##
-#   ↑   # 
-# .   . #   
-#   .   # 
-# .   . # 
-#   .    ###
-# .   .     #
-#   .     .  #
-# .   .       #
-#   .    #  . #
-#▄.▄ ▄.▄# #   #
-#   .   # #   #
-# 1   . # # . #
-#   .   # #   #
-# .   2 # # . #
-#   .   # #   #
-# .   . # # . #
-#   .   # #   #
-# 3   . # # . #        
-#   .   # #   #     
-# .   4 # # . #
-#   .   # #   #
-# .   . # # . #
-#   .   # #   #
-# 5   . # # . #
-#   .   # #   #
-# .   6 # # . #
-#   .   # #   #
-# .   . # # . #
-#   .   # #   #
-# 7   . # # . #
-#   .   # #   #
-# .   8 # # . #
-#   .   # #   #
-# .   . # # . #
-#   .   # #   #
-# 9   . # # . #
-#   .   # #   #
-# .  10 # # . #
-#   .   # #   #
-# .   . # #   #
-#   .    #  . #
-# .   .       #  
-#   .     .  #
-# ↑/  .     #
-#   ↑/   ###  
-# ↑/  ↑ #
+##  ↑   ##
+##.   . ##   
+##  .   ## 
+##.   . ## 
+##  .   ####
+##.   . ##  #
+##  .   ##.  #
+##.   . ##    #
+##  .   ##  . #
+##.▄ ▄.▄##    #
+##  .   ##    #
+##1   . ##  . #
+##  .   ##    #
+##.   2 ##  . #
+##  .   ##    #
+##.   . ##  . #
+##  .   ##    #
+##3   . ##  . #        
+##  .   ##    #     
+##.   4 ##  . #
+##  .   ##    #
+##.   . ##  . #
+##  .   ##    #
+##5   . ##  . #
+##  .   ##    #
+##.   6 ##  . #
+##  .   ##    #
+##.   . ##  . #
+##  .   ##    #
+##7   . ##  . #
+##  .   ##    #
+##.   8 ##  . #
+##  .   ##    #
+##.   . ##  . #
+##  .   ##    #
+##9   . ##  . #
+##  .   ##    #
+##.   0 ##  . #
+##  .   ##    #
+##.   . ##    #
+##  .   ##  . #
+##.   . ##    #  
+##  .   ##.  #
+##↑/  . ##  #
+##  ↑/  ####  
+##↑/  ↑ ##
 
 
 
 
-     ▲
-  ►     ◄/
-◄         ►
-  ►    ◄\
-.    ▼
 `;
 
 //∣‾_
@@ -158,6 +153,7 @@ class Globals {
   DIR_CHARS = "↖↗↙↘↑↓→←/\\|-";
   DIR_CHARS_ADJUST = "/\\|-";
   NODE_CHARS = ".·1234567890";
+  NUMERAL_CHARS = "1234567890";
   DIR = {
     N: [0, -2],
     NE: [2, -1],
@@ -707,6 +703,7 @@ const RACE_TILE_FACTORY = {
 class RacetrackMap extends ROT.Map.Arena {
   constructor(stringMap, isTranspose=false) {
     super();
+    this.startingPositions = [];
     this._data = ""
     this._isTranspose = isTranspose;
     this._isSquare = false;
@@ -1110,6 +1107,9 @@ class RacetrackMap extends ROT.Map.Arena {
       for (let x = 2; x < this._width-2; x += 2) {
         let tile = this.getTile(x, y);
 
+        if (g.NUMERAL_CHARS.includes(tile.char))
+          this.startingPositions.push([x,y]);
+
         if (g.DIR_CHARS.includes(tile.char)) {
           let tileE = this.getTile(x+1, y);
           let tileW = this.getTile(x-1, y);
@@ -1439,7 +1439,7 @@ class RaceCar {
     this.moveCount = 0;
 
     this.place = 0;
-    this.stopCount = -1;
+    this.stopCount = 0;
     this.stopCountNeeded = 0;
     this.maxWP = 18;
     this.wp = this.maxWP;
@@ -1494,24 +1494,30 @@ class RaceCar {
         tile = this.racetrack.getTile(x, y);
         if (tile && tile.isPassable()) {
           if (tile.stopCount && this.stopCountNeeded <= 0) {
-            this.stopCount = 0;
+            // If we already left a corner this turn stops don't count this turn.
+            // Keep track of it with -1;
+            if (this.stopCount != 0 || this.stopCountNeeded < 0)
+              this.stopCount = -1;
             this.stopCountNeeded = tile.stopCount;
-            this.overShootCount = 0;
           }
           else if (!tile.stopCount && this.stopCountNeeded > 0) {           
             if (this.stopCount < this.stopCountNeeded) {
-              
+              let stopCount = this.stopCount;
+              if (stopCount < 0)
+                stopCount = 0;
               if (this.stopCountNeeded > 1 && this.stopCountNeeded - this.stopCount > 1) {
                 // Overshoot too much and die
                 this.deductWP(this.wp);
               }
-              else
+              else // Number of moves we overshot
                 this.deductWP(this.moveCount);
 
               this.stopCountNeeded = -this.stopCountNeeded;
             }
-            else 
+            else {
               this.stopCountNeeded = 0;
+              this.stopCount = -1;
+            }
           }
           this.moveCount--;
           this.x = x;
@@ -1519,12 +1525,14 @@ class RaceCar {
         }
       }
       if (this.moveCount == 0) {
-        if (tile.stopCount && this.stopCountNeeded > 0)
-          this.stopCount++;
-        else if (this.stopCountNeeded <= 0) {
-          this.stopCountNeeded = 0;
+        if (this.stopCount == -1 || this.stopCountNeeded <= 0) {
+          if (this.stopCountNeeded < 0)
+            this.stopCountNeeded = 0;
           this.stopCount = 0;
         }
+        else if (tile.stopCount && this.stopCountNeeded > 0)
+          this.stopCount++;
+
         this.startTurn();
       }
     }
@@ -1599,7 +1607,7 @@ class RaceCar {
   }
 
   onUIUp() {
-    this.onRollMovementDice();
+    //this.onRollMovementDice();
   }
 
   onPlayerUp() {
@@ -1739,7 +1747,14 @@ class LevelView extends View {
   constructor(x, y, w, h, div, player) {
     super(x, y, w, h, div);
     this.racetrack = new RacetrackMap(mySmallLevel, false);
-    this.player = new RaceCar(4, 44, "green", this.racetrack);
+
+    let shuffledPositions = ROT.RNG.shuffle(this.racetrack.startingPositions);
+    this.player = new RaceCar(shuffledPositions[0][0], shuffledPositions[0][1], "green", this.racetrack);
+    this.cars = [this.player];
+    for (let i = 1; i < shuffledPositions.length; ++i) {
+      let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
+      this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
+    }
     this.display.getContainer().style.float = "left";
     this.border = 1;
     this.hudbarHeight = 2;
@@ -1770,7 +1785,14 @@ class LevelView extends View {
       originY = this.racetrack._height - h;
     }
     this.racetrack.draw(this.display, originX, originY, w, h);
-    this.player.draw(this.display, playerViewX, playerViewY); 
+
+    for (let i = 0; i < this.cars.length; ++i) {
+      this.cars[i].draw(this.display, this.cars[i].x - originX, this.cars[i].y - originY);
+    }
+
+    //this.player.draw(this.display, playerViewX, playerViewY); 
+
+ 
 
     //this.drawBorder();
     this.drawHUDBar();   
@@ -1784,13 +1806,21 @@ class LevelView extends View {
     }
     let placeText = "Place: " + this.player.place + "/10";
     let WPText = "WP: " + this.player.wp + "/" + this.player.maxWP;
-    let stopsText = "Stops: " + this.player.stopCount + "/" + Math.abs(this.player.stopCountNeeded); 
+    let stopCount = this.player.stopCount;
+    let stopsText = "";
+    if (stopCount == -1) {
+      stopCount = 0;
+      if (this.player.stopCountNeeded > 0)
+        stopsText = "%c{Red}";
+    }
+    stopsText += "Stops: " + stopCount + "/" + Math.abs(this.player.stopCountNeeded); 
     let x = 0;//this.margin+this.padding;
     let y = 1;
     if (this.player.stopCountNeeded < 0 && this.player.stopCount < Math.abs(this.player.stopCountNeeded)) {
       stopsText = "%c{Red}" + stopsText;
       WPText = "%c{Orange}" + WPText;
     }
+
     this.display.drawText(x+=1, y, placeText);
     this.display.drawText(x+=13, y, WPText);
     if (this.player.stopCountNeeded != 0)
@@ -1806,8 +1836,8 @@ class ButtonView extends View {
     this.isHover = false;
     this.text = "";
     this.textColor = "White";
-    this.textShiftX = 0;
-    this.textShiftY = 0;
+    this.textOffsetX = 0;
+    this.textOffsetY = 0;
     this.textWrap = undefined;
     this.hoverColor = "#666";
     this.upColor = "Black";
@@ -1911,9 +1941,20 @@ class ButtonView extends View {
       if (!this.isEnabled)
         color = this.disabledColor;
 
+      let textLength = this.text.length;
+
+      let wrapOffsetY = 0;
+      // TODO: separate textcolor codes better.
+      // because of the %c{} color stuf being in the text 
+      // its not accurate to divide length by wrap.
+      if (this.textWrap) {
+        textLength = this.textWrap;
+        //if (textLength >= this.textWrap)
+        wrapOffsetY = -1; 
+      }
       this.display.drawText(
-        this.x + this.textShiftX + Math.floor(this.width / 2) - Math.floor(this.text.length / 2), 
-        this.y + this.textShiftY + Math.floor(this.height/2), 
+        this.x + this.textOffsetX + Math.floor(this.width / 2) - Math.floor(textLength / 2), 
+        this.y + this.textOffsetY + Math.floor(this.height/2) + wrapOffsetY, 
         "%c{" + color + "}" + "%b{" + this.bg + "}" + this.text,
         this.textWrap);
     }
@@ -2102,8 +2143,7 @@ class ControlsView extends HUDView {
     this.goButton.border = 1;
     this.goButton.text = "\xa0▲ GO!";
     this.goButton.textWrap = 4;
-    this.goButton.textShiftX = 2;
-    this.goButton.textShiftY = -1;
+    //this.goButton.textOffsetX = 2;
     this.goButton.onPress = () => { 
       ButtonView.prototype.onPress(); 
       if (this.player.moveCount)
@@ -2119,9 +2159,12 @@ class ControlsView extends HUDView {
     // ↰ ↱ ⇦ ⇨ 
     //     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
     //•↑↓↖↗↙↘←→▼▲►◄ ◢◣◤◥ ◀▼▲▶◀ 
-    this.leftButton.text = "◀";
+    this.leftButton.text = "\xa0\◀\xa0\xa0\xa0";
+    if (!u.isMobile())
+      this.leftButton.text += "%c{DimGray}LEFT";
     this.leftButton.isEnabled = false;
-    this.leftButton.textShiftX = -1;
+    this.leftButton.textWrap = 5;
+    //this.leftButton.textOffsetX = -1;
     this.leftButton.onPress = () => { 
       ButtonView.prototype.onPress(); 
       if (this.player.moveCount)
@@ -2133,7 +2176,10 @@ class ControlsView extends HUDView {
   
     this.rightButton = new ButtonView(this.width / 2, this.height / 2, this.width / 2, this.height / 2, this, this.display);
     this.rightButton.border = 1;
-    this.rightButton.text = "▶";
+    this.rightButton.text = "\xa0\xa0\▶\xa0\xa0";
+    if (!u.isMobile())
+      this.rightButton.text += "%c{DimGray}RIGHT";
+    this.rightButton.textWrap = 5;
     this.rightButton.onPress = () => { 
       ButtonView.prototype.onPress(); 
       if (this.player.moveCount)
@@ -2148,14 +2194,16 @@ class ControlsView extends HUDView {
     if (this.player.moveCount) {
       this.goButton.text = "\xa0▲ GO!";
       this.goButton.textWrap = 3;
-      this.goButton.textShiftX = 2;
+      //this.goButton.textOffsetX = 2;
       this.leftButton.isEnabled = this.player.canMove(g.DIR_INDEX.LEFT);
       this.rightButton.isEnabled = this.player.canMove(g.DIR_INDEX.RIGHT);
     }
     else {
-      this.goButton.text = "[.][:] \xa0ROLL";
-      this.goButton.textWrap = 6;
-      this.goButton.textShiftX = 3;
+      this.goButton.text = "\xa0\xa0\xa0\xa0[:]\xa0ROLL\xa0\xa0\xa0\xa0\xa0";
+      if (!u.isMobile())
+        this.goButton.text += "%c{DimGray}SPACE/SHIFT/ENTER";
+      this.goButton.textWrap = 17; 
+      //this.goButton.textOffsetX = 3;
       this.leftButton.isEnabled = this.player.canShiftDown();
       this.rightButton.isEnabled = this.player.canShiftUp();
     }
