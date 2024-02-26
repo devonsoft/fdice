@@ -830,10 +830,15 @@ class RacetrackMap extends ROT.Map.Arena {
                 continue;
               }
               let normDir = u.normalizeArray(newTile.dirs[0]);
+              if (normDir[0] != 0 && normDir[1] != 0) {
+                normDir[0] = 0;
+                normDir = u.normalizeArray(normDir);
+              }
+
 
               // Multiply by swizzled to check horizontal if vertical arrow and vertical if horizontal arrow.
-              offset[0] *= Math.ceil(Math.abs(normDir[1]));
-              offset[1] *= Math.floor(Math.abs(normDir[0]));
+              offset[0] *= Math.abs(normDir[1]);
+              offset[1] *= Math.abs(normDir[0]);
 
               // Check left and right tiles by the x offset if up/down arrow or top and bottom tiles by the y offset if left/right arrow.
               if ((this.getTile(x + offset[0], y + offset[1]).isWall || this.getTile(x - offset[0], y - offset[1]).isWall))
@@ -980,10 +985,17 @@ class RacetrackMap extends ROT.Map.Arena {
             tile.fg = "LavenderBlush";//g.COLOR.BrightRed;
             this.setTile(wallX + c, wallY, tile);
           }
+          let offset = [8, 0];
 
-          let offset = u.scaleArray(offsets[o], 4);
-          wallX -= (arrowDir[0] + offset[0]);
-          wallY -= (arrowDir[1] + offset[1]);
+          if (arrowDir[0] != 0 && arrowDir[1] != 0) {          
+            wallX -= offset[0];
+            wallY -= offset[1];
+          }
+          else {
+            offset = u.scaleArray(offsets[o], 4);
+            wallX -= (arrowDir[0] + offset[0]);
+            wallY -= (arrowDir[1] + offset[1]);
+          }
           tile = this.getTile(wallX, wallY);
           if (tile && tile.isWall) {
             let outsideDistanceText = distances[2].toString();
@@ -1801,6 +1813,7 @@ class LevelView extends View {
     for (let i = 1; i < shuffledPositions.length; ++i) {
       let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
       this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
+    }
     let playerX = 8;
     let playerY = 24;
     if (this.racetrack.startingPositions.length) {
@@ -1813,6 +1826,7 @@ class LevelView extends View {
     if (this.racetrack.startingPositions.length) {
       for (let i = 1; i < shuffledPositions.length; ++i) {
         let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
+        this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
       }
     }
 
