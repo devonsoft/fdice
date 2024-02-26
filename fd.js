@@ -1,80 +1,87 @@
 // @ts-check
 
 const mySmallLevel = String.raw 
-`
-                                                                                                    RR##RR##RR########################################    
-                                                                                                  ##→   →\  →\  .   .   .   .   .   .   .   →\  →\ /↘ ## 
-                                                                                                RR↗-  →   →\  .   .   .   .   .   .   .   →   →\  ↘   ↓ ##
-                                                                                                ##  ↗-  →   .   .   .   .   .   .   .   .   →   ↘  /↓   ##
-                                                                                                RR↑/  ↗ RR########################################↓  /↓ ##  ################               
-                                                                                                ##  ↑/  ##                                      ## /↓   ## ##  →\  →\  →\     ##    
-                                                                                                RR↑/  ↑ ##                                      ##   /↓ ##  ##  /   →\  →\  →\  \  #   
-                                                                                                ##  ↑   ##                                      ##      ##  ##    /   →   →   \    #
-                                                                                                ##.   . ##
-                                                                                                ##  .   ##                                      #       ## ↑/   / ##### \   /↓ #
-                                                                                                ##.  \↑ RR                                      #       ##   ↑/  #     #  /↓   #
-                                                                                                ## \↑  -↖ ##                                    #       ## ↑/  ↑ #     #    /↓ #
-                                                                                                RR↑  -↖   RR                                     #   ↓   ##   ↑/  #     #       #
-                                                                                              ##↗   ↗  \↑ ##                                     # ↓\  ↘ ## ↑/ \↑ #     #       #
-    RR##RR##RR##########################################################################RR##RR↗  \↗  \↗ RR                                       #   ↘-   ↗  \↑   #
-  ##→\  →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →   ↗  \↗  \↗ ##                                         # ↘-   →   /  \↑ #
-RR↗   →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →/  →  \↗   ↗ RR                                            ##  →   →/  / ##
-##  ↗   →   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →/  →/  →/ |↗ ##                                                 ############
-RR↑/  ↗ RR##########################################################################RR##RR##RR##RR                                      
-##  ↑/  ##                                                                          
-RR↑/  ↑ RR  
-##  ↑/  ##
-RR↑/  ↑ ##
-##  ↑   ##
-##.   . ##   
-##  .   ## 
-##.   . ## 
-##  .   ####
-##.   . ##  #
-##  .   ##.  #
-##.   . ##    #
-##  .   ##  . #
-##.▄ ▄.▄##    #
-##  .   ##    #
-##1   . ##  . #
-##  .   ##    #
-##.   2 ##  . #
-##  .   ##    #
-##.   . ##  . #
-##  .   ##    #
-##3   . ##  . #        
-##  .   ##    #     
-##.   4 ##  . #
-##  .   ##    #
-##.   . ##  . #
-##  .   ##    #
-##5   . ##  . #
-##  .   ##    #
-##.   6 ##  . #
-##  .   ##    #
-##.   . ##  . #
-##  .   ##    #
-##7   . ##  . #
-##  .   ##    #
-##.   8 ##  . #
-##  .   ##    #
-##.   . ##  . #
-##  .   ##    #
-##9   . ##  . #
-##  .   ##    #
-##.   0 ##  . #
-##  .   ##    #
-##.   . ##    #
-##  .   ##  . #
-##.   . ##    #  
-##  .   ##.  #
-##↑/  . ##  #
-##  ↑/  ####  
-##↑/  ↑ ##
-
-
-
-
+`                                                                                                                                                                                              
+                                                                                                                                                                                              
+                                                                                                                                                                                              
+                                                                                                                                                                                              
+                                                                                                                                                                                              
+                                                                                                                                                                                              
+                                                                                                      RR##RR##RR##############################RR##RR##RR                                      
+                                                                                                    ##→   →\  →\  .   .   .   .   .   .   .   →\  →\ /↘ ##                                    
+                                                                                                  RR↗-  →   →\  .   .   .   .   .   .   .   →   →\  ↘   ↓ RR                                  
+                                                                                                  ##  ↗-  →   .   .   .   .   .   .   .   .   →   ↘  /↓   ##                                  
+                                                                                                  RR↑/  ↗ RR######################################RR↓  /↓ RR  RR##RR##RR##RR##RR              
+                                                                                                  ##  ↑/  ##                                      ## /↓   ####→\  →\  →\  →\  ↘ ##            
+                                                                                                  RR↑/  ↑ ##                                      ##.  /↓ RR↗   →\  →\  →\  ↘  /↓ RR          
+                                                                                                  ##  ↑   ##                                      ##  .   ##  ↗   →   →   ↘  /↓   ##          
+                                                                                                  ##.   . ##                                      ##.   . #R↑/  ↗ RR##RR##RR.  /↓ RR          
+                                                                                                  ##  .   ##                                      ##  .   ##  ↑/  ##      ##  .   ##          
+                                                                                                  ##.  \↑ RR                                      ##.   . #R↑/  ↑ RR      ##.   . ##          
+                                                                                                  ## \↑  -↖ ##                                    ##  ↓   ##  ↑/  ##      ##  .   ##          
+                                                                                                  RR↑  -↖   RR                                    RR↓\  ↘ RR↑/ \↑ RR      ##.   . ##          
+                                                                                                ##↗   ↗  \↑ ##                                    ##  ↘-  ↗  \↑   ##      ##  .   ##          
+      RR##RR##RR##########################################################################RR##RR↗  \↗  \↗ RR                                      RR↘-  →   ↗  \↑ RR      ##.   . ##          
+    ##→\  →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →   ↗  \↗  \↗ ##                                          ##→   →/  ↗ ##        ##  .   ##          
+  RR↗   →\  →\  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →   →/  →  \↗   ↗ RR                                              RR##RR##RR          ##.   . ##          
+  ##  ↗   →   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   →/  →/  →/ |↗ ##                                                                    ##  .   ##          
+  RR↑/  ↗ RR##########################################################################RR##RR##RR##RR                                                                      ##.   . ##          
+  ##  ↑/  ##                                                                                                                                                              ##  .   ##          
+  RR↑/  ↑ RR                                                                                                                                                              ##.   . ##          
+  ##  ↑/  ##                                                                                                                                                              ##  .   ##          
+  RR↑/  ↑ ##                                                                                                                                                              ##.   . ##          
+  ##  ↑   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.▄ ▄.▄##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##1   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   2 ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##3   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   4 ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##5   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   6 ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##7   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   8 ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##9   . ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  .   ##          
+  ##.   0 ##                                                                                                                                                              ##.   . ##          
+  ##  .   ##                                                                                                                                                              ##  ↓   ##          
+  ##.   . ##                                                                                                                                                              RR↓\  ↘ RR##RR      
+  ##  .   ##                                                                                                                                                              ##  ↘-  →\ |↘ ##    
+  ##.   . ##                                                                                                                                                              RR↘-  →\  ↘   ↓ RR  
+  ##  .   ##                                                                                                                                                                ##→   ↘  /↓   ##  
+  RR↑/  . ##                                                                                                                                                                  RR##RR↓  /↓ RR  
+  ##  ↑/  ##                                                                                                                                                                      ## /↓   ##  
+  RR↑/  ↑ RR######################################################################################################################################################################RR↙  /↓ RR  
+  ##  ↑/  ↖   ←   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   ←   ↙   ##  
+  RR↑/  ↖  \←   ←   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  \←  \←   ↙ RR  
+    ##↖  \←  \←   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  \←  \←  \← ##    
+      RR##RR##RR##############################################################################################################################################################RR##RR##RR      
+                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                          ##  ↓   ##                      
 `;
 
 //∣‾_
@@ -643,27 +650,25 @@ const RACE_TILE_FACTORY = {
   "e": new RaceTile("·", "#000", g.COLOR.Asphalt, true, [g.DIR.E, g.DIR.NE, g.DIR.SE], "e"),
   "w": new RaceTile("·", "#000", g.COLOR.Asphalt, true, [g.DIR.W, g.DIR.SW, g.DIR.NW], "w"),
 
-  "⇐": new RaceTile("⇐", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.W]),
-  "⇒": new RaceTile("⇒", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.E]),
-  "⇖": new RaceTile("⇖", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.NW]),
-  "⇗": new RaceTile("⇗", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.NE]),
-  "⇘": new RaceTile("⇘", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.SE]),
-  "⇙": new RaceTile("⇙", "aqua", g.COLOR.AsphaltRed, true, [g.DIR.SW]),
-
   "←": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W]),
   "→": new RaceTile("→", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E]),
   "↑": new RaceTile("↑", "#000", g.COLOR.AsphaltRed, true, [g.DIR.N]),
   "↓": new RaceTile("↓", "#000", g.COLOR.AsphaltRed, true, [g.DIR.S]),
-  ["←" + g.COLOR.Asphalt]: new RaceTile("←", "#000", g.COLOR.Asphalt, true, [g.DIR.W]),
-  ["→" + g.COLOR.Asphalt]: new RaceTile("→", "#000", g.COLOR.Asphalt, true, [g.DIR.E]),
-  ["↑" + g.COLOR.Asphalt]: new RaceTile("↑", "#000", g.COLOR.Asphalt, true, [g.DIR.N]),
-  ["↓" + g.COLOR.Asphalt]: new RaceTile("↓", "#000", g.COLOR.Asphalt, true, [g.DIR.S]),
-
   "↖": new RaceTile("↖", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NW]),
   "↗": new RaceTile("↗", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE]),
   " ↗": new RaceTile("↗", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE]),
   "↘": new RaceTile("↘", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE]),
   "↙": new RaceTile("↙", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SW]),
+
+  ["←" + g.COLOR.Asphalt]: new RaceTile("←", "#000", g.COLOR.Asphalt, true, [g.DIR.W]),
+  ["→" + g.COLOR.Asphalt]: new RaceTile("→", "#000", g.COLOR.Asphalt, true, [g.DIR.E]),
+  ["↑" + g.COLOR.Asphalt]: new RaceTile("↑", "#000", g.COLOR.Asphalt, true, [g.DIR.N]),
+  ["↓" + g.COLOR.Asphalt]: new RaceTile("↓", "#000", g.COLOR.Asphalt, true, [g.DIR.S]),
+  ["↖" + g.COLOR.Asphalt]: new RaceTile("↖", "#000", g.COLOR.Asphalt, true, [g.DIR.NW]),
+  ["↗" + g.COLOR.Asphalt]: new RaceTile("↗", "#000", g.COLOR.Asphalt, true, [g.DIR.NE]),
+  ["↘" + g.COLOR.Asphalt]: new RaceTile("↘", "#000", g.COLOR.Asphalt, true, [g.DIR.SE]),
+  ["↙" + g.COLOR.Asphalt]: new RaceTile("↙", "#000", g.COLOR.Asphalt, true, [g.DIR.SW]),
+
   "/": new RaceTile("/", "#000", g.COLOR.AsphaltRed, true),
   "\\": new RaceTile("\\", "#000", g.COLOR.AsphaltRed, true),
   "|": new RaceTile("|", "#000", g.COLOR.AsphaltRed, true),
@@ -671,35 +676,43 @@ const RACE_TILE_FACTORY = {
 
   "↑/": new RaceTile("↑", "#000", g.COLOR.AsphaltRed, true, [g.DIR.N, [], g.DIR.NE]),
   "\\↑": new RaceTile("↑", "#000", g.COLOR.AsphaltRed, true, [g.DIR.N, g.DIR.NW, []]),
-  "↓\\": new RaceTile("↓", "#000", g.COLOR.AsphaltRed, true, [g.DIR.S, [], g.DIR.SE]),
-  "/↓": new RaceTile("↓", "#000", g.COLOR.AsphaltRed, true, [g.DIR.S, g.DIR.SW, []]),
-  "\\→": new RaceTile("\\", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, [], g.DIR.SE]),
+
+  "↓\\": new RaceTile("↓", "#000", g.COLOR.AsphaltRed, true, [g.DIR.S, g.DIR.SE, []]),
+  "/↓": new RaceTile("↓", "#000", g.COLOR.AsphaltRed, true, [g.DIR.S, [], g.DIR.SW]),
+
   "→\\": new RaceTile("→", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, [], g.DIR.SE]),  
-  "/→" : new RaceTile("/", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE, []]),
-  "→/" : new RaceTile("→", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE, []]),  
-  "←\\": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true,[g.DIR.W, [], g.DIR.NW]),
-  "←/": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.SW, []]),
+  "→/" : new RaceTile("→", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE, []]),
+  //"\\→": new RaceTile("\\", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, [], g.DIR.SE]),
+  //"/→" : new RaceTile("/", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE, []]),  
+
+  "\\←": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true,[g.DIR.W, [], g.DIR.NW]),
+  "/←": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.SW, []]),
+  //"←\\": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true,[g.DIR.W, [], g.DIR.NW]),
+  //"←/": new RaceTile("←", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.SW, []]),
   
   "↗-": new RaceTile("↗", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE, [], g.DIR.E]),
   "\\↗": new RaceTile("↗", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE, g.DIR.NW, []]),
   "|↗": new RaceTile("↗", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE, g.DIR.N, []]),
+
   "-↖": new RaceTile("↖", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NW, g.DIR.W, []]),
   "↖/": new RaceTile("↖", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NW, [], g.DIR.NE]),
   "↖|": new RaceTile("↖", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NW, [], g.DIR.N]),
+
   "↘-": new RaceTile("↘", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE, g.DIR.E, []]),
   "/↘": new RaceTile("↘", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE, [], g.DIR.NW]),
   "|↘": new RaceTile("↘", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE, [], g.DIR.S]),
+
   "-↙": new RaceTile("↙", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SW, [], g.DIR.W]), 
   "↙\\": new RaceTile("↙", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SW, g.DIR.SE, []]),
   "↙|": new RaceTile("↙", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SW, g.DIR.S, []]),
 
-  "∠": new RaceTile("∠", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE]),
-  "⦣": new RaceTile("⦣", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.NW]),
-  "⍀": new RaceTile("⍀", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.SE]),
-  "τ": new RaceTile("τ", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.SE]),
-  "⦢": new RaceTile("⦢", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.SW]),
-  "^": new RaceTile("^", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE, g.DIR.SW]),
-  "v": new RaceTile("v", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE, g.DIR.NW])
+  //"∠": new RaceTile("∠", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.NE]),
+  //"⦣": new RaceTile("⦣", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.NW]),
+  //"⍀": new RaceTile("⍀", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.SE]),
+  //"τ": new RaceTile("τ", "#000", g.COLOR.AsphaltRed, true, [g.DIR.E, g.DIR.SE]),
+  //"⦢": new RaceTile("⦢", "#000", g.COLOR.AsphaltRed, true, [g.DIR.W, g.DIR.SW]),
+  //"^": new RaceTile("^", "#000", g.COLOR.AsphaltRed, true, [g.DIR.SE, g.DIR.SW]),
+  //"v": new RaceTile("v", "#000", g.COLOR.AsphaltRed, true, [g.DIR.NE, g.DIR.NW])
 };
 
 class RacetrackMap extends ROT.Map.Arena {
@@ -789,7 +802,8 @@ class RacetrackMap extends ROT.Map.Arena {
         if (tile.char == "←" 
           || tile.char == "→"
           || tile.char == "↑" 
-          || tile.char == "↓") 
+          || tile.char == "↓"
+          || tile.char == "↘") 
         {
           let dirs = [
             [tile.dirs[0][0] * -1, tile.dirs[0][1] * -1],
@@ -811,11 +825,15 @@ class RacetrackMap extends ROT.Map.Arena {
               // Store the inside and outside lane entrances for stop calculation.
               
               let offset = [2, 1];
+              if (!newTile.dirs[0]) {
+                console.log("ERROR: No Direction on " + newTile.char + ". Check map starts on correct x.");
+                continue;
+              }
               let normDir = u.normalizeArray(newTile.dirs[0]);
 
               // Multiply by swizzled to check horizontal if vertical arrow and vertical if horizontal arrow.
-              offset[0] *= Math.abs(normDir[1]);
-              offset[1] *= Math.abs(normDir[0]);
+              offset[0] *= Math.ceil(Math.abs(normDir[1]));
+              offset[1] *= Math.floor(Math.abs(normDir[0]));
 
               // Check left and right tiles by the x offset if up/down arrow or top and bottom tiles by the y offset if left/right arrow.
               if ((this.getTile(x + offset[0], y + offset[1]).isWall || this.getTile(x - offset[0], y - offset[1]).isWall))
@@ -872,6 +890,11 @@ class RacetrackMap extends ROT.Map.Arena {
         let y = this._cornerEntracePositions[j][1];
         let tile = this.getTile(x, y);
         let dir = tile.dirs[g.DIR_INDEX.FORWARD];
+
+        if (!dir) {
+          console.log("ERROR: No Direction on " + tile.char);
+          continue;
+        }
         x += dir[0];
         y += dir[1]; 
         tile = this.getTile(x, y);
@@ -1778,7 +1801,21 @@ class LevelView extends View {
     for (let i = 1; i < shuffledPositions.length; ++i) {
       let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
       this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
+    let playerX = 8;
+    let playerY = 24;
+    if (this.racetrack.startingPositions.length) {
+      playerX = shuffledPositions[0][0];
+      playerY = shuffledPositions[0][1];
     }
+    this.player = new RaceCar(playerX, playerY, "green", this.racetrack);
+    this.cars = [this.player];
+
+    if (this.racetrack.startingPositions.length) {
+      for (let i = 1; i < shuffledPositions.length; ++i) {
+        let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
+      }
+    }
+
     this.display.getContainer().style.float = "left";
     this.border = 1;
     this.hudbarHeight = 2;
