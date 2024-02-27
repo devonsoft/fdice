@@ -149,6 +149,8 @@ const DIR = {
 };
 */
 class Globals {
+  /** @type {Game} */
+  ame;
   DEBUG = false;
   DIR_CHARS = "↖↗↙↘↑↓→←/\\|-";
   DIR_CHARS_ADJUST = "/\\|-";
@@ -937,13 +939,14 @@ class RacetrackMap extends ROT.Map.Arena {
       let y = this._cornerEntracePositions[i][1];
       offsets = [[2, 0], [-2, 0]];
       let tile = this.getTile(x, y);
+      let arrowDir = tile.dirs[0];
       // Direction is Horizontal
-      if (tile.dirs[0][0] != 0) 
+      if (arrowDir && arrowDir[0] != 0) 
         offsets = [[0, 1], [0, -1]];
 
       for (let o = 0; o < offsets.length; ++o) {
-        let wallX = x + offsets[o][0];
-        let wallY = y + offsets[o][1];
+        let wallX = x + offsets[o][0] + arrowDir[0];
+        let wallY = y + offsets[o][1] + arrowDir[1];
         tile = this.getTile(wallX, wallY);
         if (tile && tile.isWall) {
           let insideDistanceText = distances[0].toString();
@@ -951,13 +954,13 @@ class RacetrackMap extends ROT.Map.Arena {
             tile = this.getTile(wallX + c, wallY);
             tile = new RaceTile(tile);
             tile.char = insideDistanceText.charAt(c);
-            tile.fg = g.COLOR.BrightRed;
+            tile.fg = "LavenderBlush";//g.COLOR.BrightRed;
             this.setTile(wallX + c, wallY, tile);
           }
 
           let offset = u.scaleArray(offsets[o], 4);
-          wallX -= offset[0];
-          wallY -= offset[1];
+          wallX -= (arrowDir[0] + offset[0]);
+          wallY -= (arrowDir[1] + offset[1]);
           tile = this.getTile(wallX, wallY);
           if (tile && tile.isWall) {
             let outsideDistanceText = distances[2].toString();
@@ -1396,23 +1399,45 @@ class Dice {
 
 };
 
-class RaceCar {
-  constructor(x, y, color="#000", racetrack, debugChar="") {
+class Actor {
+  isActing = false;
+  resolve;
+  endTurn() { 
+    this.isActing = false;
+    if (this.resolve) {
+      this.resolve(); 
+      this.resolve = null;
+    }
+  }
+
+  act() {
+    this.isActing = true;
+    return new Promise((resolve) => {
+      this.resolve = resolve;
+    });
+  }
+}
+
+class RaceCar extends Actor {
+  constructor(x, y, color="#000", racetrack, isPlayer) {
+    super();
+    this.isPlayer = 0;
+    if (isPlayer)
+      this.isPlayer = 1;
     this.color = color;
     this.x = x;
     this.y = y;
     this.racetrack = racetrack;
     this.bg = "#0000";
-    this.debugChar = debugChar;
     this.dirChars = {};
-    this.dirChars[g.DIR.N] = "▲";
-    this.dirChars[g.DIR.NE] = "◥";
-    this.dirChars[g.DIR.E] = "▶"; // ►
-    this.dirChars[g.DIR.SE] = "◢";
-    this.dirChars[g.DIR.S] = "▼";
-    this.dirChars[g.DIR.SW] = "◣";
-    this.dirChars[g.DIR.W] = "◀"; // ◄
-    this.dirChars[g.DIR.NW] = "◤";
+    this.dirChars[g.DIR.N] = "◼▲▵"; // △⬥⯁◆⯃⯀■◼♦▭▯▬▮
+    this.dirChars[g.DIR.NE] = "♦◥◹";
+    this.dirChars[g.DIR.E] = "◼▶▹"; // ► ▷
+    this.dirChars[g.DIR.SE] = "♦◢◿";
+    this.dirChars[g.DIR.S] = "◼▼v"; // ▽
+    this.dirChars[g.DIR.SW] = "♦◣◺"; 
+    this.dirChars[g.DIR.W] = "◼◀◃"; // ◄ v
+    this.dirChars[g.DIR.NW] = "♦◤◸";
 
     this.gear = 1;
     this.prevGear = 1;
@@ -1444,17 +1469,14 @@ class RaceCar {
     this.maxWP = 18;
     this.wp = this.maxWP;
 
-
-
     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
     //•↑↓↖↗↙↘←→▼▲►◄ ◢◣◤◥ ◀▼▲▶◀ 
-
   }
 
   draw(display, x, y) {
     const tile = this.racetrack.getTile(this.x, this.y);
     if (tile && tile.dirs.length) {
-      let char = this.dirChars[tile.dirs[0]];
+      let char = this.dirChars[tile.dirs[0]].charAt(1);
 
       if (tile.dirs.length) {
         //let x = this.x;
@@ -1470,11 +1492,13 @@ class RaceCar {
     }
   }
 
-  startTurn() {
+  act() {
     this.shiftCount = 1;
     this.moveCount = 0;
     this.prevGear = this.gear;
-    game.input.context = INPUT_CONTEXT.UI;
+    g.ame.input.context = INPUT_CONTEXT.UI;
+
+    return super.act();
   }
 
   deductWP(damage) {
@@ -1533,7 +1557,7 @@ class RaceCar {
         else if (tile.stopCount && this.stopCountNeeded > 0)
           this.stopCount++;
 
-        this.startTurn();
+        this.endTurn();
       }
     }
   }
@@ -1553,11 +1577,11 @@ class RaceCar {
   }
 
   canShiftUp() {
-    return this.shiftCount && this.gear < this.maxGear && this.gear - this.prevGear < this.shiftCount;
+    return this.shiftCount != 0 && this.gear < this.maxGear && this.gear - this.prevGear < this.shiftCount;
   }
 
   canShiftDown() {
-    return this.shiftCount && this.gear > this.minGear && this.prevGear - this.gear < this.shiftCount;
+    return this.shiftCount != 0 && this.gear > this.minGear && this.prevGear - this.gear < this.shiftCount;
   }
 
   cycleShift() {
@@ -1590,7 +1614,7 @@ class RaceCar {
       this.shiftCount = 0;
       this.speed = this.dice[this.gear].roll();
       this.moveCount = this.speed;
-      game.input.context = INPUT_CONTEXT.Player;
+      g.ame.input.context = INPUT_CONTEXT.Player;
     }
   }
 
@@ -1749,7 +1773,7 @@ class LevelView extends View {
     this.racetrack = new RacetrackMap(mySmallLevel, false);
 
     let shuffledPositions = ROT.RNG.shuffle(this.racetrack.startingPositions);
-    this.player = new RaceCar(shuffledPositions[0][0], shuffledPositions[0][1], "green", this.racetrack);
+    this.player = new RaceCar(shuffledPositions[0][0], shuffledPositions[0][1], "green", this.racetrack, true);
     this.cars = [this.player];
     for (let i = 1; i < shuffledPositions.length; ++i) {
       let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
@@ -1786,7 +1810,7 @@ class LevelView extends View {
     }
     this.racetrack.draw(this.display, originX, originY, w, h);
 
-    for (let i = 0; i < this.cars.length; ++i) {
+    for (let i = this.cars.length - 1; i >= 0; i--) {
       this.cars[i].draw(this.display, this.cars[i].x - originX, this.cars[i].y - originY);
     }
 
@@ -1857,7 +1881,7 @@ class ButtonView extends View {
   }
 
   /**
-   * @param {MouseEvent} event
+   * @param {PointerEvent} event
    */
   onEvent(event) {
     if (!this.isEnabled) {
@@ -1968,7 +1992,7 @@ class ButtonView extends View {
 
 class HUDView extends View {
   /**
-   * @param {game} Game
+   * @param {Game} game
    * @param {RaceCar} player
    */
   constructor(game, player) {
@@ -2259,6 +2283,9 @@ class Game {
     this.input = new InputManager([(event) => { event; this.draw(); }], INPUT_CONTEXT.UI, this.views);
     this.input.addInputActionListener(this.player);
 
+    this.scheduler = new ROT.Scheduler.Simple();
+    this.scheduler.add(this.player, true);
+
     /*if (this.racetrack._isTranspose) {
       w = this.racetrack._height;
       h = this.racetrack._width / 2;
@@ -2377,106 +2404,25 @@ class Game {
       this.views[i].draw();
   }
 
-  testPathfinding() {
-    var raceDijkstra = new RacetrackDijkstra(4, 26, 0, {racetrack: this.racetrack}); // ROT.Path.Dijkstra
-    let b = true;
-    raceDijkstra.compute(12, 17, (x, y) => {
-      //if (b) {
-        this.display.draw(x, y, "", "", "#800");
-        b = false;
-      //}
-    });
-
-    this.display.draw(4, 25, "", "", "#3f3");
-    //display.draw(6, 22, "", "", "#f33");
-    //display.draw(12, 17, "", "", "#f33");
+  async update() {
+    let actor = this.scheduler.next();
+    if (!actor) { return false; }
+    await actor.act();
+    return true;
   }
-
-  sketchbook() {
-    var display22 = new ROT.Display({width:this.racetrack._width, height:this.racetrack._height, fontSize:1});
-    //SHOW(display2.getContainer());
-    this.racetrack.create(display22.DEBUG);
-    this.div.appendChild(display22.getContainer());
-
-    //display22.getContainer().style.display = "inline-block";
-    //display22.getContainer().style.verticalAlign = "top";
-    display22.getContainer().style.float = "left";
-
-    var w = 150, h = 80;
-    ROT.RNG.setSeed(12345);
-    var display2 = new ROT.Display({width:w, height:h, fontSize:1});
-    //display2.getContainer().style.display = "inline-block";
-    //display2.getContainer().style.verticalAlign = "top";
-
-    /* generate map and store its data */
-    var data = {};
-    var map2 = new ROT.Map.Uniform(w, h, {});
-    map2.create(function(x, y, value) {
-        data[x+","+y] = value;
-        display2.DEBUG(x, y, value);
-    });
-
-    /* input callback informs about map structure */
-    var passableCallback = function(x, y) {
-        return (data[x+","+y] === 0);
-    }
-
-    /* prepare path to given coords */
-    var dijkstra = new ROT.Path.Dijkstra(98, 38, passableCallback, {}); // ROT.Path.Dijkstra
-
-    /* compute from given coords #1 */
-    dijkstra.compute(8, 45, function(x, y) {
-        display2.draw(x, y, "", "", "#800");
-    });
-
-    /* compute from given coords #2 */
-    dijkstra.compute(130, 8, function(x, y) {
-        display2.draw(x, y, "", "", "#800");
-    });
-
-    /* highlight */
-    display2.draw(8,  45, "", "", "#3f3");
-    display2.draw(130, 8, "", "", "#3f3");
-    display2.draw(98, 38, "", "", "#f33");
-    // @ts-ignore
-    this.div.appendChild(display2.getContainer());
-    display2.getContainer().style.float = "left";
-
-    return;
-
-    let racetrack2 = new RacetrackMap(hexLevel);
-    var display4 = new ROT.Display({width:racetrack2._width, height:racetrack2._height, fontSize:20, layout:"hex", transpose: false});
-    // @ts-ignore
-    document.body.appendChild(display4.getContainer());
-    racetrack2.drawHex(display4);
-
-    var display5 = new ROT.Display({width:8, height:5, layout:"hex"});
-    // @ts-ignore
-    document.body.appendChild(display5.getContainer());
-
-    for (var y = 0; y < 5; y++) {
-        for (var x = y%2; x < 8; x += 2) {
-            var bg = ROT.RNG.getItem(["#333", g.COLOR.Asphalt, "#999", "#ccc", "#fff"]);
-            display5.draw(x, y, "•", "#000", bg);
-        }
-    }
-
-    /* debugging with small font */
-    var display3 = new ROT.Display({width:this.racetrack._width, height:this.racetrack._height, fontSize:6});
-    //SHOW(display2.getContainer());
-    this.racetrack.create(display3.DEBUG);
-
-    // @ts-ignore
-    document.body.appendChild(display3.getContainer());
-
-
-    }
 };
-let game = new Game();
+
+g.ame = new Game();
 
 
+async function main() {
+  //if (!g.ame)
+  //  g.ame = new Game();
 
+  while (1) { 
+    await g.ame.update();
+  }
+}
 
-
-
+main();
 
