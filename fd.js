@@ -189,6 +189,10 @@ class Globals {
 const g = new Globals();
 
 class Utilities {
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   normalizeArray(a) {
     let x = a[0];
     if (x != 0)
@@ -1454,7 +1458,7 @@ class Actor {
 }
 
 class RaceCar extends Actor {
-  constructor(x, y, color="#000", racetrack, isPlayer) {
+  constructor(x, y, color="#000", racetrack, isPlayer, view) {
     super();
     this.isPlayer = 0;
     if (isPlayer)
@@ -1463,15 +1467,16 @@ class RaceCar extends Actor {
     this.x = x;
     this.y = y;
     this.racetrack = racetrack;
+    this.view = view;
     this.bg = "#0000";
     this.dirChars = {};
-    this.dirChars[g.DIR.N] = "◼▲▵"; // △⬥⯁◆⯃⯀■◼♦▭▯▬▮
+    this.dirChars[g.DIR.N]  = "◼▲▵"; // △⬥⯁◆⯃⯀■◼♦▭▯▬▮
     this.dirChars[g.DIR.NE] = "♦◥◹";
-    this.dirChars[g.DIR.E] = "◼▶▹"; // ► ▷
+    this.dirChars[g.DIR.E]  = "◼▶▹"; // ► ▷
     this.dirChars[g.DIR.SE] = "♦◢◿";
-    this.dirChars[g.DIR.S] = "◼▼v"; // ▽
+    this.dirChars[g.DIR.S]  = "◼▼v"; // ▽
     this.dirChars[g.DIR.SW] = "♦◣◺"; 
-    this.dirChars[g.DIR.W] = "◼◀◃"; // ◄ v
+    this.dirChars[g.DIR.W]  = "◼◀◃"; // ◄ v
     this.dirChars[g.DIR.NW] = "♦◤◸";
 
     this.gear = 1;
@@ -1531,9 +1536,37 @@ class RaceCar extends Actor {
     this.shiftCount = 1;
     this.moveCount = 0;
     this.prevGear = this.gear;
-    g.ame.input.context = INPUT_CONTEXT.UI;
+    setTimeout( () => {
+      if (this.isPlayer) {
+        g.ame.input.context = INPUT_CONTEXT.UI;
+        g.ame.draw();
+      }
+      else
+        this.doAI();  
+    }, 100);
 
     return super.act();
+
+  }
+
+  doAI() {
+    
+    if (this.gear < 3) {
+      this.onShiftUp();
+    }
+    this.rollMovementDice();
+    
+    const loop = () => {
+      if (this.moveCount) {
+        this.move(g.DIR_INDEX.FORWARD);
+        this.view.draw();
+        setTimeout(loop, 100);
+      }
+      else
+        this.endTurn();
+    }
+    loop();
+    
   }
 
   deductWP(damage) {
@@ -1644,12 +1677,14 @@ class RaceCar extends Actor {
       return false;
   }
 
-  onRollMovementDice() {
+  rollMovementDice() {
     if (this.shiftCount) {
       this.shiftCount = 0;
       this.speed = this.dice[this.gear].roll();
       this.moveCount = this.speed;
-      g.ame.input.context = INPUT_CONTEXT.Player;
+
+      if (this.isPlayer)
+        g.ame.input.context = INPUT_CONTEXT.Player;
     }
   }
 
@@ -1662,7 +1697,7 @@ class RaceCar extends Actor {
   }
 
   onUIConfirm() {
-    this.onRollMovementDice();
+    this.rollMovementDice();
   }
 
   onUIUp() {
@@ -1803,30 +1838,35 @@ class View {
 
 
 class LevelView extends View {
-  constructor(x, y, w, h, div, player) {
+  constructor(x, y, w, h, div, scheduler) {
     super(x, y, w, h, div);
     this.racetrack = new RacetrackMap(mySmallLevel, false);
 
     let shuffledPositions = ROT.RNG.shuffle(this.racetrack.startingPositions);
-    this.player = new RaceCar(shuffledPositions[0][0], shuffledPositions[0][1], "green", this.racetrack, true);
-    this.cars = [this.player];
-    for (let i = 1; i < shuffledPositions.length; ++i) {
-      let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
-      this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
-    }
     let playerX = 8;
     let playerY = 24;
     if (this.racetrack.startingPositions.length) {
       playerX = shuffledPositions[0][0];
       playerY = shuffledPositions[0][1];
     }
-    this.player = new RaceCar(playerX, playerY, "green", this.racetrack);
+    this.player = new RaceCar(playerX, playerY, "green", this.racetrack, true, this);
     this.cars = [this.player];
 
     if (this.racetrack.startingPositions.length) {
       for (let i = 1; i < shuffledPositions.length; ++i) {
         let color = ROT.Color.toRGB(ROT.Color.randomize([128, 0, 100], [100, 50, 100]));
-        this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack));
+        this.cars.push(new RaceCar(shuffledPositions[i][0], shuffledPositions[i][1], color, this.racetrack, false, this));
+      }
+    }
+    //points.toSorted(function(a, b){return a - b});
+    for (let i = 0; i < this.racetrack.startingPositions.length; ++i) {
+      const x = this.racetrack.startingPositions[i][0];
+      const y = this.racetrack.startingPositions[i][1];
+      for (let j = 0; j < this.cars.length; ++j) {
+        if (this.cars[j].x == x && this.cars[j].y == y) {
+          scheduler.add(this.cars[j], true);
+          break;
+        }
       }
     }
 
@@ -2324,7 +2364,10 @@ class Game {
     this.views = [];
     this.startWidth = u.scaleMobile(96);
     this.startHeight = u.scaleMobile(48);
-    let levelView = new LevelView(0, 0, this.startWidth, this.startHeight, this.div);
+
+    this.scheduler = new ROT.Scheduler.Simple();
+    
+    let levelView = new LevelView(0, 0, this.startWidth, this.startHeight, this.div, this.scheduler);
     this.player = levelView.player;
     this.views.push(levelView);
     this.views.push(new GearView(this, this.player));
@@ -2333,9 +2376,6 @@ class Game {
 
     this.input = new InputManager([(event) => { event; this.draw(); }], INPUT_CONTEXT.UI, this.views);
     this.input.addInputActionListener(this.player);
-
-    this.scheduler = new ROT.Scheduler.Simple();
-    this.scheduler.add(this.player, true);
 
     /*if (this.racetrack._isTranspose) {
       w = this.racetrack._height;
@@ -2463,12 +2503,8 @@ class Game {
   }
 };
 
-g.ame = new Game();
-
-
 async function main() {
-  //if (!g.ame)
-  //  g.ame = new Game();
+  g.ame = new Game();
 
   while (1) { 
     await g.ame.update();
