@@ -1483,7 +1483,7 @@ class RaceCar extends Actor {
     this.prevGear = 1;
     this.maxGear = 6;
     this.minGear = 1;
-    this.shiftCount = 1;
+    this.shiftCount = 0;
     this.dice = [
       new Dice(1, 20), // Damage Dice
       new Dice(1, 2), // 1st Gear...
@@ -1728,11 +1728,14 @@ class View {
     this.padding = 0;
     this.isVisible = true;
     this.title = "";
-    this.bg = "Black";
-    //this.textColor = "#ccc";
+    this.bgColor = "Black";
+    this.disabledColor = "DimGray";
+    this.fgColor = "DimGray";
+    this.textColor = "#ccc";
     this.children = [];
     this.isEnabled = true;
-    this.disabledColor = "DimGray";
+
+    this.corner = "+";
 
     if (!display) {
       this.display = new ROT.Display({
@@ -1800,7 +1803,7 @@ class View {
     }*/
   }
 
-  clear() {
+  clear() {""
     this.display.clear();
   }
 
@@ -1808,29 +1811,43 @@ class View {
     if (this.border < 1)
       return;
 
-    let color = "white";
-    if (!this.isEnabled)
+    let color = this.fgColor;
+    let textColor = this.textColor;
+    if (!this.isEnabled) {
       color = this.disabledColor;
+      textColor = this.disabledColor;
+    }
 
-    if (!this.title)
+    let bgColor = this.bgColor;
+
+    // Dont highlight border for embossed effect.
+    if (this.upColor && this.bgColor == this.downColor)
+      bgColor = this.upColor;
+
+    if (this.title != "GEAR-SHIFT")
       this.x = this.x;
     let w = this.x + this.width;
     let h = this.y + this.height;
-    let titleX = Math.ceil(this.width / 2) - (this.title.length / 2);
     let margin = this.margin;
+    let titleX = this.x + Math.ceil(this.width / 2 - (this.title.length / 2));
     let marginY = Math.floor(margin/2);
     for (let x = this.x + margin; x < w; x += this.width - (margin * 2 + 1)) {
       for (let y = this.y + marginY + 1; y < h - (marginY + 1); y++) {
-          this.display.draw(x, y, "|", color, this.bg);
+          this.display.draw(x, y, "|", color, bgColor);
       }
     }
-    let yStart = this.y + marginY;
-    for (let x = this.x + margin + 1; x < w - margin - 1; x++) {
+    const yStart = this.y + marginY;
+    const xStart = this.x + margin;
+    const xEnd = w - margin;
+    for (let x = xStart; x < w - margin; x++) {
       for (let y = yStart; y < h; y += this.height - (marginY * 2 + 1)) {
           if (y == yStart && x >= titleX && x < titleX + this.title.length)
-            this.display.draw(x, y, this.title[x - titleX], color, this.bg);
+            this.display.draw(x, y, this.title[x - titleX], textColor, bgColor);
+          else if (x == xStart || x == xEnd - 1) {
+            this.display.draw(x, y, this.corner, color, bgColor);
+          }
           else
-            this.display.draw(x, y, "-", color, this.bg);
+            this.display.draw(x, y, "-", color, bgColor);
       }
     }
   }   
@@ -1957,8 +1974,9 @@ class ButtonView extends View {
     this.hoverColor = "#666";
     this.upColor = "Black";
     this.downColor = "#444";
-    this.bg = this.upColor;
-
+    this.bgColor = this.upColor;
+    this.corner = " ";
+    this.fgColor = "#ccc";
     
   }
 
@@ -1976,7 +1994,7 @@ class ButtonView extends View {
    */
   onEvent(event) {
     if (!this.isEnabled) {
-      this.bg = this.upColor;
+      this.bgColor = this.upColor;
       return;
     }
 
@@ -2014,25 +2032,25 @@ class ButtonView extends View {
   }
 
   onDown() {
-    this.bg = this.downColor;
+    this.bgColor = this.downColor;
   }
 
   onHover() {
-    this.bg = this.hoverColor;
+    this.bgColor = this.hoverColor;
     //this.display.setOptions({bg: "#222"});
   }
 
   onOut() {
     //this.display.setOptions({bg: "Black"});
-    this.bg = this.upColor;
+    this.bgColor = this.upColor;
     this.isHover = false;
   }
 
   onPress() {
     if (this.isHover)
-      this.bg = this.hoverColor;
+      this.bgColor = this.hoverColor;
     else
-      this.bg = this.upColor;
+      this.bgColor = this.upColor;
     //this.isHover = false;
   }
 
@@ -2042,7 +2060,7 @@ class ButtonView extends View {
     let h = this.y + this.height - this.border;
     for (let x = this.x + this.border; x < w; x++) {
       for (let y = this.y + this.border; y < h; y++) {
-          this.display.draw(x, y, " ", null, this.bg);
+          this.display.draw(x, y, "", null, this.bgColor);
       }
     }
 
@@ -2070,14 +2088,14 @@ class ButtonView extends View {
       this.display.drawText(
         this.x + this.textOffsetX + Math.floor(this.width / 2) - Math.floor(textLength / 2), 
         this.y + this.textOffsetY + Math.floor(this.height/2) + wrapOffsetY, 
-        "%c{" + color + "}" + "%b{" + this.bg + "}" + this.text,
+        "%c{" + color + "}" + "%b{" + this.bgColor + "}" + this.text,
         this.textWrap);
     }
     if (this.isDown)
-      this.bg = this.upColor;
+      this.bgColor = this.upColor;
     super.draw();
     if (this.isDown)
-      this.bg = this.downColor;
+      this.bgColor = this.downColor;
   }
 };
 
@@ -2097,7 +2115,7 @@ class HUDView extends View {
     this.margin = u.scaleMobile(1);
     this.padding = u.scaleMobile(2);
     this.border = 1;
-    this.bg = "black";
+    this.bgColor = "black";
 
   }
 
@@ -2256,16 +2274,15 @@ class ControlsView extends HUDView {
 
     this.goButton = new ButtonView(0, 0, this.width, this.height / 2, this, this.display);
     this.goButton.border = 1;
-    this.goButton.text = "\xa0▲ GO!";
+    this.goButton.text = "";
     this.goButton.textWrap = 4;
     //this.goButton.textOffsetX = 2;
     this.goButton.onPress = () => { 
-      ButtonView.prototype.onPress(); 
+      ButtonView.prototype.onPress.call(this.goButton); 
       if (this.player.moveCount)
         this.player.onPlayerUp();
       else
         this.player.onUIConfirm(); 
-      this.draw(); 
     }
     
     this.leftButton = new ButtonView(0, this.height / 2, this.width / 2, this.height / 2, this, this.display);
@@ -2274,53 +2291,92 @@ class ControlsView extends HUDView {
     // ↰ ↱ ⇦ ⇨ 
     //     // ⇐ ⇒ ⇔ , ⇑ ⇓ ⇕ , ⇖ ⇗ ⇘ ⇙
     //•↑↓↖↗↙↘←→▼▲►◄ ◢◣◤◥ ◀▼▲▶◀ 
-    this.leftButton.text = "\xa0\◀\xa0\xa0\xa0";
-    if (!u.isMobile())
-      this.leftButton.text += "%c{DimGray}LEFT";
+    this.leftButton.text = "\xa0\xa0◀\xa0\xa0\xa0";
     this.leftButton.isEnabled = false;
-    this.leftButton.textWrap = 5;
+    this.leftButton.textWrap = 6;
     //this.leftButton.textOffsetX = -1;
     this.leftButton.onPress = () => { 
-      ButtonView.prototype.onPress(); 
+      ButtonView.prototype.onPress.call(this.leftButton);  
       if (this.player.moveCount)
         this.player.onPlayerLeft(); 
       else
         this.player.onUILeft(); 
-      this.draw();
     }
   
     this.rightButton = new ButtonView(this.width / 2, this.height / 2, this.width / 2, this.height / 2, this, this.display);
     this.rightButton.border = 1;
-    this.rightButton.text = "\xa0\xa0\▶\xa0\xa0";
-    if (!u.isMobile())
-      this.rightButton.text += "%c{DimGray}RIGHT";
-    this.rightButton.textWrap = 5;
+    this.rightButton.text = "\xa0\xa0\xa0▶\xa0\xa0\xa0";
+    this.rightButton.textWrap = 7;
     this.rightButton.onPress = () => { 
-      ButtonView.prototype.onPress(); 
+      ButtonView.prototype.onPress.call(this.rightButton);   
       if (this.player.moveCount)
         this.player.onPlayerRight(); 
       else 
         this.player.onUIRight();
-      this.draw();
+    }
+  }
+
+  appendKeyboardKeys() {
+    if (!u.isMobile()) {
+      this.leftButton.text += "%c{#444}LEFT/A";
+      this.rightButton.text += "%c{#444}RIGHT/D";
+
+      if (this.player.moveCount)
+        this.goButton.text += "%c{#444}UP/W";
+      else if (this.player.shiftCount)
+        this.goButton.text += "%c{#444}SHIFT/ENTER/SPACE";
     }
   }
 
   draw() {
     if (this.player.moveCount) {
-      this.goButton.text = "\xa0▲ GO!";
-      this.goButton.textWrap = 3;
-      //this.goButton.textOffsetX = 2;
+      this.goButton.isEnabled = true;
+      this.goButton.text = "\xa0\xa0▲\xa0\ \xa0GO!";
+      this.goButton.textWrap = 4;
+
+      this.leftButton.textWrap = 6;
+      this.leftButton.text = "\xa0\xa0◀\xa0\xa0\xa0" ;
+      this.leftButton.text += " STEER";
+      this.rightButton.textWrap = 7;
+      this.rightButton.text = "\xa0\xa0\xa0▶\xa0\xa0";
+      this.rightButton.text += " \xa0STEER"
       this.leftButton.isEnabled = this.player.canMove(g.DIR_INDEX.LEFT);
       this.rightButton.isEnabled = this.player.canMove(g.DIR_INDEX.RIGHT);
+
+      this.appendKeyboardKeys();
+
     }
-    else {
-      this.goButton.text = "\xa0\xa0\xa0\xa0[:]\xa0ROLL\xa0\xa0\xa0\xa0\xa0";
-      if (!u.isMobile())
-        this.goButton.text += "%c{DimGray}SPACE/SHIFT/ENTER";
+    else if (this.player.shiftCount) {
+      this.goButton.isEnabled = true;
+      this.goButton.text = "\xa0\xa0[:]\xa0ROLL\xa0SPD\xa0\xa0\xa0";
       this.goButton.textWrap = 17; 
-      //this.goButton.textOffsetX = 3;
+
       this.leftButton.isEnabled = this.player.canShiftDown();
       this.rightButton.isEnabled = this.player.canShiftUp();
+
+      //if (u.isMobile()) {
+        this.leftButton.textWrap = 6;
+        this.leftButton.text = "\xa0\xa0◀\xa0\xa0\xa0" ;
+        this.leftButton.text += " SHFTDN";
+        this.rightButton.textWrap = 7;
+        this.rightButton.text = "\xa0\xa0\xa0▶\xa0\xa0";
+        this.rightButton.text += " SHFTUP\xa0"
+      /*}
+      else {
+        this.leftButton.textWrap = 8;
+        this.leftButton.text = "\xa0\xa0\xa0◀\xa0\xa0\xa0\xa0" ;
+        this.leftButton.text += " SHIFT\xa0DN";
+        this.rightButton.textWrap = 8;
+        this.rightButton.text = "\xa0\xa0\xa0\xa0▶\xa0\xa0\xa0";
+        this.rightButton.text += " SHIFT\xa0UP"      
+      }*/
+
+      this.appendKeyboardKeys();
+    }
+    else {
+      this.goButton.isEnabled = false;
+      this.leftButton.isEnabled = false;
+      this.rightButton.isEnabled = false;
     }
     super.draw();
   }
